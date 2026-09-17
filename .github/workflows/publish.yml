@@ -72,14 +72,6 @@ jobs:
               if ".." in value:
                   raise SystemExit("Invalid filename")
 
-              if not re.fullmatch(
-                  r"[A-Za-z0-9_-]+(?:\.md)?",
-                  value
-              ):
-                  raise SystemExit(
-                      "Filename may only contain letters, numbers, _ and -"
-                  )
-
               value = re.sub(
                   r"\.md$",
                   "",
@@ -87,10 +79,32 @@ jobs:
                   flags=re.IGNORECASE
               )
 
-              if not value:
-                  raise SystemExit("Invalid filename")
+              # 只保留安全英文文件名
+              if re.fullmatch(
+                  r"[A-Za-z0-9_-]+",
+                  value
+              ):
+                  return value + ".md"
 
-              return value + ".md"
+              # 中文/其他字符无法直接作为安全文件名时，
+              # 根据标题生成稳定的 ASCII 文件名
+              ascii_value = value.encode(
+                  "ascii",
+                  "ignore"
+              ).decode("ascii")
+
+              ascii_value = re.sub(
+                  r"[^A-Za-z0-9_-]+",
+                  "-",
+                  ascii_value
+              ).strip("-_")
+
+              if not ascii_value:
+                  raise SystemExit(
+                      "Invalid filename: please use an English filename or a title that can generate a slug"
+                  )
+
+              return ascii_value + ".md"
 
           def get_value(meta, name):
               match = re.search(
