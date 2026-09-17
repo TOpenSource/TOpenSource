@@ -270,42 +270,41 @@ const posts = await getCollection('posts');
       const mode = sortSelect.value;
 
       posts.sort((a, b) => {
+        const dateA = new Date(a.dataset.date).getTime();
+        const dateB = new Date(b.dataset.date).getTime();
+
+        const titleCompare = a.dataset.title.localeCompare(
+          b.dataset.title,
+          'zh-CN'
+        );
+
+        const categoryCompare = a.dataset.category.localeCompare(
+          b.dataset.category,
+          'zh-CN'
+        );
+
         if (mode === 'newest') {
-          const dateDiff =
-            new Date(b.dataset.date) - new Date(a.dataset.date);
-
-          if (dateDiff !== 0) return dateDiff;
-
-          return b.dataset.title.localeCompare(
-            a.dataset.title,
-            'zh-CN'
-          );
+          if (dateB !== dateA) return dateB - dateA;
+          if (titleCompare !== 0) return titleCompare;
+          if (categoryCompare !== 0) return categoryCompare;
         }
 
         if (mode === 'oldest') {
-          const dateDiff =
-            new Date(a.dataset.date) - new Date(b.dataset.date);
-
-          if (dateDiff !== 0) return dateDiff;
-
-          return a.dataset.title.localeCompare(
-            b.dataset.title,
-            'zh-CN'
-          );
+          if (dateA !== dateB) return dateA - dateB;
+          if (titleCompare !== 0) return titleCompare;
+          if (categoryCompare !== 0) return categoryCompare;
         }
 
         if (mode === 'az') {
-          return a.dataset.title.localeCompare(
-            b.dataset.title,
-            'zh-CN'
-          );
+          if (titleCompare !== 0) return titleCompare;
+          if (categoryCompare !== 0) return categoryCompare;
+          if (dateB !== dateA) return dateB - dateA;
         }
 
         if (mode === 'za') {
-          return b.dataset.title.localeCompare(
-            a.dataset.title,
-            'zh-CN'
-          );
+          if (titleCompare !== 0) return -titleCompare;
+          if (categoryCompare !== 0) return categoryCompare;
+          if (dateB !== dateA) return dateB - dateA;
         }
 
         return 0;

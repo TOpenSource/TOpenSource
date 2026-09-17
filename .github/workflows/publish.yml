@@ -350,6 +350,12 @@ jobs:
           esac
 
           git commit -m "$COMMIT_MESSAGE"
+
+          # 同步远程 main，避免 NEXUS 与其他 GitHub Actions
+          # 同时更新时出现 fetch first
+          git fetch origin main
+          git rebase origin/main
+
           git push origin main
 
       - name: Close issue
