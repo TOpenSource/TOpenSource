@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.1",
+    "@astrojs/sitemap": "^3.7.4",
     "@octokit/rest": "^22.0.1",
     "astro": "^7.3.3",
     "pinyin-pro": "^3.29.4"
