@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
 ---
 
 <!doctype html>
@@ -119,6 +119,62 @@ const { Content } = await render(post);
       background: #081015;
       border: 1px solid #153c43;
     }
+  
+
+    /* ===== NEXUS TOC ===== */
+
+    .article-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 20px;
+      order: 2;
+      border: 1px solid #153c43;
+      background: rgba(5,7,10,.85);
+      padding: 16px;
+      font-size: 14px;
+    }
+
+    .toc-title {
+      color: #00ffff;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .toc nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toc a {
+      color: #9fbfc5;
+      text-decoration: none;
+      transition: .2s;
+    }
+
+    .toc a:hover {
+      color: #00ffff;
+    }
+
+    @media(max-width:900px){
+
+      .article-layout {
+        display:block;
+      }
+
+      .toc {
+        display:none;
+      }
+
+    }
+
+
   </style>
 </head>
 
@@ -165,9 +221,29 @@ const { Content } = await render(post);
 
     </div>
 
-    <article>
-      <Content />
-    </article>
+    <div class="article-layout">
+
+      <article>
+        <Content />
+      </article>
+
+      <aside class="toc">
+
+        <div class="toc-title">
+          📑 CONTENTS
+        </div>
+
+        <nav>
+          {headings.map((heading) => (
+            <a href={`#${heading.slug}`}>
+              {heading.text}
+            </a>
+          ))}
+        </nav>
+
+      </aside>
+
+    </div>
 
     <section class="comments">
       <script
