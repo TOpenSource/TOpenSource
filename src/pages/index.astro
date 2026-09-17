@@ -270,47 +270,115 @@ const posts = await getCollection('posts');
       const mode = sortSelect.value;
 
       posts.sort((a, b) => {
-        const dateA = new Date(a.dataset.date).getTime();
-        const dateB = new Date(b.dataset.date).getTime();
+        // ISO 日期字符串 YYYY-MM-DD / ISO 时间可以直接比较。
+        // 不使用 new Date()，避免时区造成排序偏差。
+        const dateA = a.dataset.date || '';
+        const dateB = b.dataset.date || '';
 
-        const titleCompare = a.dataset.title.localeCompare(
-          b.dataset.title,
-          'zh-CN'
-        );
+        const titleA = a.dataset.title || '';
+        const titleB = b.dataset.title || '';
 
-        const categoryCompare = a.dataset.category.localeCompare(
-          b.dataset.category,
-          'zh-CN'
-        );
+        const categoryA = a.dataset.category || '未分类';
+        const categoryB = b.dataset.category || '未分类';
 
         if (mode === 'newest') {
-          if (dateB !== dateA) return dateB - dateA;
-          if (titleCompare !== 0) return titleCompare;
-          if (categoryCompare !== 0) return categoryCompare;
+          // 最新：日期降序
+          if (dateA !== dateB) {
+            return dateB.localeCompare(dateA);
+          }
+
+          // 日期相同：标题升序，保证稳定
+          const titleCompare = titleA.localeCompare(
+            titleB,
+            'zh-CN'
+          );
+
+          if (titleCompare !== 0) {
+            return titleCompare;
+          }
+
+          // 标题也相同：分类升序
+          return categoryA.localeCompare(
+            categoryB,
+            'zh-CN'
+          );
         }
 
         if (mode === 'oldest') {
-          if (dateA !== dateB) return dateA - dateB;
-          if (titleCompare !== 0) return titleCompare;
-          if (categoryCompare !== 0) return categoryCompare;
+          // 最早：日期升序
+          if (dateA !== dateB) {
+            return dateA.localeCompare(dateB);
+          }
+
+          // 日期相同：标题升序
+          const titleCompare = titleA.localeCompare(
+            titleB,
+            'zh-CN'
+          );
+
+          if (titleCompare !== 0) {
+            return titleCompare;
+          }
+
+          // 标题也相同：分类升序
+          return categoryA.localeCompare(
+            categoryB,
+            'zh-CN'
+          );
         }
 
         if (mode === 'az') {
-          if (titleCompare !== 0) return titleCompare;
-          if (categoryCompare !== 0) return categoryCompare;
-          if (dateB !== dateA) return dateB - dateA;
+          const titleCompare = titleA.localeCompare(
+            titleB,
+            'zh-CN'
+          );
+
+          if (titleCompare !== 0) {
+            return titleCompare;
+          }
+
+          const categoryCompare = categoryA.localeCompare(
+            categoryB,
+            'zh-CN'
+          );
+
+          if (categoryCompare !== 0) {
+            return categoryCompare;
+          }
+
+          return dateB.localeCompare(dateA);
         }
 
         if (mode === 'za') {
-          if (titleCompare !== 0) return -titleCompare;
-          if (categoryCompare !== 0) return categoryCompare;
-          if (dateB !== dateA) return dateB - dateA;
+          const titleCompare = titleB.localeCompare(
+            titleA,
+            'zh-CN'
+          );
+
+          if (titleCompare !== 0) {
+            return titleCompare;
+          }
+
+          const categoryCompare = categoryA.localeCompare(
+            categoryB,
+            'zh-CN'
+          );
+
+          if (categoryCompare !== 0) {
+            return categoryCompare;
+          }
+
+          return dateB.localeCompare(dateA);
         }
 
         return 0;
       });
 
-      posts.forEach(post => postsContainer.appendChild(post));
+      // 排序后重新插入 DOM。
+      // 这一步决定页面实际显示顺序。
+      posts.forEach((post) => {
+        postsContainer.appendChild(post);
+      });
     }
 
     function search() {
