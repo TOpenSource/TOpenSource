@@ -240,6 +240,34 @@ const articleList = posts.map((post) => ({
       display: none;
     }
 
+
+    /* ARTICLE SEARCH */
+
+    .article-search {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .article-search input {
+      margin-top: 0;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-clear {
+      width: 45px;
+      padding: 8px;
+      color: #8ba9a3;
+    }
+
+    .search-status {
+      color: #52736d;
+      font-size: 11px;
+      margin-bottom: 12px;
+      min-height: 16px;
+    }
+
     /* ARTICLE MANAGER */
 
     .manager-header {
@@ -425,115 +453,60 @@ const articleList = posts.map((post) => ({
 
     <!-- ARTICLE MANAGER -->
 
-    <section class="panel">
+<section class="panel">
 
-      <div class="manager-header">
+  <div class="manager-header">
 
-        <div>
-          <div class="manager-title">
-            📚 ARTICLE MANAGER
-          </div>
-
-          <div class="article-count">
-            <span id="articleCount">
-              {articleList.length}
-            </span>
-            ARTICLES
-          </div>
-        </div>
-
-        <button
-          type="button"
-          id="refreshManagerBtn"
-        >
-          ↻ REFRESH
-        </button>
-
+    <div>
+      <div class="manager-title">
+        📚 ARTICLE MANAGER
       </div>
 
-
-      <div id="articleList" class="article-list">
-
-        {
-          articleList.length === 0 ? (
-            <div class="empty">
-              NO ARTICLES FOUND
-            </div>
-          ) : (
-            articleList.map((article) => (
-              <div
-                class="article-card"
-                data-slug={article.slug}
-              >
-
-                <div class="article-main">
-
-                  <div class="article-info">
-
-                    <div class="article-title">
-                      {article.title}
-                    </div>
-
-                    <div class="article-slug">
-                      {article.slug}.md
-                    </div>
-
-                    {
-                      article.description && (
-                        <div class="article-description">
-                          {article.description}
-                        </div>
-                      )
-                    }
-
-                    <div class="article-meta">
-                      {article.pubDate}
-                    </div>
-
-                  </div>
-
-
-                  <div class="article-actions">
-
-                    <button
-                      type="button"
-                      class="edit-button"
-                      data-action="edit"
-                      data-slug={article.slug}
-                    >
-                      ✎ EDIT
-                    </button>
-
-                    <button
-                      type="button"
-                      class="danger"
-                      data-action="delete"
-                      data-slug={article.slug}
-                      data-title={article.title}
-                    >
-                      🗑 DELETE
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </div>
-            ))
-          )
-        }
-
+      <div class="article-count">
+        <span id="articleCount">0</span>
+        / 0 ARTICLES
       </div>
+    </div>
 
-      <div class="hint" style="margin-top:14px;">
-        编辑和删除操作会通过 GitHub Actions 写入仓库。
-        浏览器不会保存 GitHub Token。
-      </div>
+    <button type="button" id="refreshManagerBtn">
+      ↻ REFRESH
+    </button>
 
-    </section>
+  </div>
 
+  <div class="article-search">
 
-    <!-- EDITOR -->
+    <input
+      type="search"
+      id="articleSearch"
+      placeholder="🔎 搜索标题、文件名、描述、标签……"
+      autocomplete="off"
+    />
+
+    <button
+      type="button"
+      id="clearSearchBtn"
+      class="search-clear"
+    >
+      ✕
+    </button>
+
+  </div>
+
+  <div id="searchStatus" class="search-status">
+    显示全部文章
+  </div>
+
+  <div id="articleList" class="article-list"></div>
+
+  <div class="hint" style="margin-top:14px;">
+    搜索结果只影响当前显示。
+    编辑和删除仍通过 GitHub Actions 执行。
+  </div>
+
+</section>
+
+<!-- EDITOR -->
 
     <section class="panel">
 
@@ -1589,15 +1562,178 @@ function exportMarkdown() {
 
 
 /*
- * ARTICLE MANAGER BUTTONS
+ * ARTICLE MANAGER
  */
 
-document
-  .querySelectorAll(
-    '[data-action="edit"]'
-  )
-  .forEach(
-    button => {
+const articleListElement =
+  document.getElementById('articleList');
+
+const articleCountElement =
+  document.getElementById('articleCount');
+
+const articleSearch =
+  document.getElementById('articleSearch');
+
+const clearSearchBtn =
+  document.getElementById('clearSearchBtn');
+
+const searchStatus =
+  document.getElementById('searchStatus');
+
+
+function renderArticleList(keyword = '') {
+
+  const query =
+    keyword.trim().toLowerCase();
+
+  const results =
+    ARTICLES.filter(article => {
+
+      if (!query) {
+        return true;
+      }
+
+      const searchable = [
+        article.title,
+        article.slug,
+        article.description,
+        ...(article.tags || [])
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return searchable.includes(query);
+
+    });
+
+
+  articleCountElement.textContent =
+    results.length;
+
+
+  if (query) {
+
+    searchStatus.textContent =
+      `搜索「${keyword}」：找到 ${results.length} 篇文章`;
+
+  } else {
+
+    searchStatus.textContent =
+      `显示全部 ${results.length} 篇文章`;
+
+  }
+
+
+  if (!results.length) {
+
+    articleListElement.innerHTML = `
+      <div class="empty">
+        NO MATCHING ARTICLES
+        <br><br>
+        没有找到匹配的文章
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  articleListElement.innerHTML =
+    results.map(article => `
+
+      <div
+        class="article-card"
+        data-slug="${escapeHtml(article.slug)}"
+      >
+
+        <div class="article-main">
+
+          <div class="article-info">
+
+            <div class="article-title">
+              ${escapeHtml(article.title)}
+            </div>
+
+            <div class="article-slug">
+              ${escapeHtml(article.slug)}.md
+            </div>
+
+            ${
+              article.description
+                ? `
+                  <div class="article-description">
+                    ${escapeHtml(
+                      article.description
+                    )}
+                  </div>
+                `
+                : ''
+            }
+
+            <div class="article-meta">
+
+              ${escapeHtml(
+                article.pubDate || ''
+              )}
+
+              ${
+                article.tags?.length
+                  ? ' · ' +
+                    article.tags
+                      .map(
+                        tag => '#' + tag
+                      )
+                      .join(' ')
+                  : ''
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="article-actions">
+
+            <button
+              type="button"
+              class="edit-button"
+              data-action="edit"
+              data-slug="${escapeHtml(
+                article.slug
+              )}"
+            >
+              ✎ EDIT
+            </button>
+
+            <button
+              type="button"
+              class="danger"
+              data-action="delete"
+              data-slug="${escapeHtml(
+                article.slug
+              )}"
+              data-title="${escapeHtml(
+                article.title
+              )}"
+            >
+              🗑 DELETE
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join('');
+
+
+  articleListElement
+    .querySelectorAll(
+      '[data-action="edit"]'
+    )
+    .forEach(button => {
 
       button.addEventListener(
         'click',
@@ -1610,16 +1746,14 @@ document
         }
       );
 
-    }
-  );
+    });
 
 
-document
-  .querySelectorAll(
-    '[data-action="delete"]'
-  )
-  .forEach(
-    button => {
+  articleListElement
+    .querySelectorAll(
+      '[data-action="delete"]'
+    )
+    .forEach(button => {
 
       button.addEventListener(
         'click',
@@ -1633,9 +1767,38 @@ document
         }
       );
 
-    }
-  );
+    });
 
+}
+
+
+articleSearch.addEventListener(
+  'input',
+  () => {
+
+    renderArticleList(
+      articleSearch.value
+    );
+
+  }
+);
+
+
+clearSearchBtn.addEventListener(
+  'click',
+  () => {
+
+    articleSearch.value = '';
+
+    renderArticleList('');
+
+    articleSearch.focus();
+
+  }
+);
+
+
+renderArticleList('');
 
 /*
  * REFRESH
