@@ -361,12 +361,10 @@ jobs:
 
           git push origin main
 
-      - name: Close issue
+      - name: Delete issue
         if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh issue close "$ISSUE_NUMBER" \
-            --repo "$GITHUB_REPOSITORY" \
-            --comment "NEXUS operation completed successfully. GitHub Pages deployment has been triggered."
+          gh issue delete "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --yes
