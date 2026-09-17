@@ -55,6 +55,23 @@ const { Content } = await render(post);
       position: relative;
     }
 
+    .edit-button {
+      margin-right: 8px;
+      padding: 8px 12px;
+      border: 1px solid #4ffcff;
+      background: transparent;
+      color: #4ffcff;
+      font-family: monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .edit-button:hover {
+      background: #4ffcff;
+      color: #05070a;
+    }
+
     .delete-button {
       position: absolute;
       top: 0;
@@ -114,6 +131,14 @@ const { Content } = await render(post);
     <div class="post-header">
 
       <button
+        id="editArticle"
+        class="edit-button"
+        type="button"
+      >
+        ✎ EDIT
+      </button>
+
+      <button
         id="deleteArticle"
         class="delete-button"
         type="button"
@@ -137,6 +162,14 @@ const { Content } = await render(post);
   </main>
 
   <script define:vars={{ filename: post.id, title: post.data.title }}>
+    const editButton =
+      document.getElementById('editArticle');
+
+    editButton.addEventListener('click', () => {
+      window.location.href =
+        `/admin/?edit=${encodeURIComponent(filename)}`;
+    });
+
     const deleteButton =
       document.getElementById('deleteArticle');
 

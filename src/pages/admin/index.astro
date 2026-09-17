@@ -2041,7 +2041,14 @@ title.addEventListener(
  * INITIALIZE
  */
 
-loadDraft();
+const editSlug =
+  new URLSearchParams(window.location.search).get('edit');
+
+if (editSlug) {
+  loadArticle(editSlug);
+} else {
+  loadDraft();
+}
 
 updatePreview();
 
