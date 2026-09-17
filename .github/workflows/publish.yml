@@ -176,6 +176,7 @@ jobs:
               article_title = get_value(meta, "TITLE")
               description = get_value(meta, "DESCRIPTION")
               tags = get_value(meta, "TAGS")
+              category = get_value(meta, "CATEGORY") or "未分类"
 
               if not article_title:
                   raise SystemExit("Missing title")
@@ -276,6 +277,10 @@ jobs:
               )
               output.append(
                   f"pubDate: {pub_date}"
+              )
+
+              output.append(
+                  f'category: "{yaml_string(category)}"'
               )
 
               if tag_list:
