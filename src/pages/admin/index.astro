@@ -733,6 +733,9 @@ const title =
 const description =
   document.getElementById('description');
 
+// NEXUS 内部发布时间：仅用于系统排序，不直接展示给用户
+const INTERNAL_PUBLISH_TIME = '__NEXUS_INTERNAL_PUBLISH_TIME__';
+
 const category =
   document.getElementById('category');
 
@@ -1342,6 +1345,7 @@ window.publishToGitHub =
 `<!-- NEXUS_PUBLISH_START -->
 NEXUS_FILENAME=${name}
 NEXUS_TITLE=${data.title.replace(/\n/g, ' ')}
+NEXUS_PUBDATE=${new Date().toISOString()}
 NEXUS_DESCRIPTION=${data.description.replace(/\n/g, ' ')}
 NEXUS_TAGS=${data.tags.replace(/\n/g, ' ')}
 NEXUS_CATEGORY=${data.category.replace(/\n/g, ' ')}
