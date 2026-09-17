@@ -1,12 +1,30 @@
 ---
+import { getCollection } from 'astro:content';
+
 const base = import.meta.env.BASE_URL;
+
+const posts = await getCollection('posts');
+
+const articleList = posts.map((post) => ({
+  id: post.id,
+  slug: post.id.replace(/\.md$/i, ''),
+  title: post.data.title,
+  description: post.data.description || '',
+  pubDate: post.data.pubDate
+    ? post.data.pubDate.toISOString().slice(0, 10)
+    : '',
+  tags: post.data.tags || [],
+  content: post.body || ''
+}));
 ---
 
 <!doctype html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>NEXUS // ADMIN</title>
 
   <style>
@@ -17,12 +35,16 @@ const base = import.meta.env.BASE_URL;
     :global(body) {
       margin: 0;
       min-height: 100vh;
+
       background:
         linear-gradient(rgba(0,255,200,.035) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0,255,200,.035) 1px, transparent 1px),
         #05080b;
+
       background-size: 32px 32px;
+
       color: #d8fff5;
+
       font-family: Arial, sans-serif;
     }
 
@@ -35,6 +57,7 @@ const base = import.meta.env.BASE_URL;
     header {
       border: 1px solid #17463f;
       background: rgba(4,15,17,.88);
+
       padding: 22px;
       margin-bottom: 18px;
     }
@@ -48,7 +71,9 @@ const base = import.meta.env.BASE_URL;
 
     .sub {
       margin-top: 8px;
+
       color: #6d9d94;
+
       font-size: 12px;
       letter-spacing: 2px;
     }
@@ -56,23 +81,33 @@ const base = import.meta.env.BASE_URL;
     .panel {
       border: 1px solid #17463f;
       background: rgba(4,15,17,.92);
+
       padding: 18px;
+
       margin-bottom: 18px;
     }
 
     .toolbar {
       display: flex;
+
       gap: 10px;
+
       flex-wrap: wrap;
+
       margin-bottom: 16px;
     }
 
     button {
       border: 1px solid #1d7566;
+
       background: #081b1b;
+
       color: #73ffe2;
+
       padding: 10px 16px;
+
       cursor: pointer;
+
       font-weight: 700;
     }
 
@@ -80,50 +115,84 @@ const base = import.meta.env.BASE_URL;
       background: #0d302d;
     }
 
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
     .danger {
       border-color: #784242;
       color: #ff8c8c;
     }
 
-    input, textarea {
+    .danger:hover {
+      background: #301414;
+    }
+
+    .edit-button {
+      border-color: #756d1d;
+      color: #ffe873;
+    }
+
+    input,
+    textarea {
       width: 100%;
+
       border: 1px solid #17463f;
+
       background: #020607;
+
       color: #d8fff5;
+
       padding: 12px;
+
       outline: none;
+
       margin-top: 7px;
+
       font: inherit;
     }
 
-    input:focus, textarea:focus {
+    input:focus,
+    textarea:focus {
       border-color: #40cdb4;
     }
 
     textarea {
       min-height: 360px;
+
       resize: vertical;
+
       font-family: monospace;
+
       line-height: 1.6;
     }
 
     label {
       display: block;
+
       margin-bottom: 15px;
+
       color: #73b9aa;
+
       font-size: 13px;
     }
 
     .grid {
       display: grid;
+
       grid-template-columns: 1fr 1fr;
+
       gap: 14px;
     }
 
     .preview {
       border: 1px dashed #17463f;
+
       padding: 18px;
+
       min-height: 360px;
+
       overflow-wrap: anywhere;
     }
 
@@ -133,24 +202,188 @@ const base = import.meta.env.BASE_URL;
       color: #64ffe0;
     }
 
+    .preview code {
+      background: #071b19;
+
+      border: 1px solid #17463f;
+
+      padding: 2px 5px;
+
+      color: #7dffe8;
+    }
+
     .status {
       border-left: 3px solid #39d4b4;
+
       background: #071412;
+
       padding: 12px;
+
       margin-top: 15px;
+
       color: #8cebd9;
+
       font-size: 13px;
+
       white-space: pre-wrap;
     }
 
     .hint {
       color: #61847e;
+
       font-size: 12px;
+
       line-height: 1.7;
     }
 
     .hidden {
       display: none;
+    }
+
+    /* ARTICLE MANAGER */
+
+    .manager-header {
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      gap: 10px;
+
+      flex-wrap: wrap;
+
+      margin-bottom: 14px;
+    }
+
+    .manager-title {
+      color: #64ffe0;
+
+      font-size: 18px;
+
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .article-count {
+      color: #61847e;
+
+      font-size: 12px;
+    }
+
+    .article-list {
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 10px;
+    }
+
+    .article-card {
+      border: 1px solid #17463f;
+
+      background: rgba(2,8,9,.75);
+
+      padding: 14px;
+    }
+
+    .article-card:hover {
+      border-color: #286f62;
+    }
+
+    .article-main {
+      display: flex;
+
+      justify-content: space-between;
+
+      gap: 14px;
+
+      align-items: flex-start;
+    }
+
+    .article-info {
+      min-width: 0;
+
+      flex: 1;
+    }
+
+    .article-title {
+      color: #d8fff5;
+
+      font-size: 16px;
+
+      font-weight: 700;
+
+      margin-bottom: 6px;
+    }
+
+    .article-slug {
+      color: #4e8077;
+
+      font-family: monospace;
+
+      font-size: 12px;
+
+      word-break: break-all;
+    }
+
+    .article-description {
+      color: #71948e;
+
+      font-size: 12px;
+
+      margin-top: 7px;
+
+      line-height: 1.5;
+    }
+
+    .article-meta {
+      color: #52736d;
+
+      font-size: 11px;
+
+      margin-top: 8px;
+    }
+
+    .article-actions {
+      display: flex;
+
+      gap: 7px;
+
+      flex-wrap: wrap;
+
+      justify-content: flex-end;
+    }
+
+    .article-actions button {
+      padding: 7px 10px;
+
+      font-size: 12px;
+    }
+
+    .empty {
+      border: 1px dashed #17463f;
+
+      padding: 25px;
+
+      text-align: center;
+
+      color: #61847e;
+    }
+
+    .editing-badge {
+      display: inline-block;
+
+      border: 1px solid #756d1d;
+
+      color: #ffe873;
+
+      padding: 4px 8px;
+
+      font-size: 11px;
+
+      margin-bottom: 12px;
     }
 
     @media (max-width: 700px) {
@@ -165,96 +398,382 @@ const base = import.meta.env.BASE_URL;
       textarea {
         min-height: 300px;
       }
+
+      .article-main {
+        flex-direction: column;
+      }
+
+      .article-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
 
 <body>
+
   <main class="wrap">
 
     <header>
       <div class="logo">NEXUS // ADMIN</div>
-      <div class="sub">PERSONAL KNOWLEDGE ARCHIVE · CONTROL TERMINAL</div>
+
+      <div class="sub">
+        PERSONAL KNOWLEDGE ARCHIVE · CONTROL TERMINAL
+      </div>
     </header>
 
+
+    <!-- ARTICLE MANAGER -->
+
     <section class="panel">
-      <div class="toolbar">
-        <button id="newBtn">＋ NEW ARTICLE</button>
-        <button id="saveBtn">💾 SAVE DRAFT</button>
-        <button id="previewBtn">👁 PREVIEW</button>
-        <button id="editBtn">✎ EDIT</button>
-        <button id="exportBtn">⬇ EXPORT MARKDOWN</button>
-        <button type="button" id="publishBtn" onclick="publishToGitHub()">🚀 PUBLISH TO GITHUB</button>
-        <button id="clearBtn" class="danger">CLEAR</button>
+
+      <div class="manager-header">
+
+        <div>
+          <div class="manager-title">
+            📚 ARTICLE MANAGER
+          </div>
+
+          <div class="article-count">
+            <span id="articleCount">
+              {articleList.length}
+            </span>
+            ARTICLES
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="refreshManagerBtn"
+        >
+          ↻ REFRESH
+        </button>
+
       </div>
 
-      <div class="hint">
-        编辑完成后点击「EXPORT MARKDOWN」可以直接生成文章文件。
-        真正写入 GitHub 的操作仍由 GitHub Actions 完成，不在浏览器中保存 Token。
+
+      <div id="articleList" class="article-list">
+
+        {
+          articleList.length === 0 ? (
+            <div class="empty">
+              NO ARTICLES FOUND
+            </div>
+          ) : (
+            articleList.map((article) => (
+              <div
+                class="article-card"
+                data-slug={article.slug}
+              >
+
+                <div class="article-main">
+
+                  <div class="article-info">
+
+                    <div class="article-title">
+                      {article.title}
+                    </div>
+
+                    <div class="article-slug">
+                      {article.slug}.md
+                    </div>
+
+                    {
+                      article.description && (
+                        <div class="article-description">
+                          {article.description}
+                        </div>
+                      )
+                    }
+
+                    <div class="article-meta">
+                      {article.pubDate}
+                    </div>
+
+                  </div>
+
+
+                  <div class="article-actions">
+
+                    <button
+                      type="button"
+                      class="edit-button"
+                      data-action="edit"
+                      data-slug={article.slug}
+                    >
+                      ✎ EDIT
+                    </button>
+
+                    <button
+                      type="button"
+                      class="danger"
+                      data-action="delete"
+                      data-slug={article.slug}
+                      data-title={article.title}
+                    >
+                      🗑 DELETE
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+            ))
+          )
+        }
+
       </div>
+
+      <div class="hint" style="margin-top:14px;">
+        编辑和删除操作会通过 GitHub Actions 写入仓库。
+        浏览器不会保存 GitHub Token。
+      </div>
+
     </section>
 
+
+    <!-- EDITOR -->
+
     <section class="panel">
+
+      <div id="editingBadge" class="editing-badge hidden">
+        EDITING EXISTING ARTICLE
+      </div>
+
+
+      <div class="toolbar">
+
+        <button
+          id="newBtn"
+          type="button"
+        >
+          ＋ NEW ARTICLE
+        </button>
+
+        <button
+          id="saveBtn"
+          type="button"
+        >
+          💾 SAVE DRAFT
+        </button>
+
+        <button
+          id="previewBtn"
+          type="button"
+        >
+          👁 PREVIEW
+        </button>
+
+        <button
+          id="editBtn"
+          type="button"
+        >
+          ✎ EDIT
+        </button>
+
+        <button
+          id="exportBtn"
+          type="button"
+        >
+          ⬇ EXPORT MARKDOWN
+        </button>
+
+        <button
+          type="button"
+          id="publishBtn"
+          onclick="publishToGitHub()"
+        >
+          🚀 PUBLISH TO GITHUB
+        </button>
+
+        <button
+          type="button"
+          id="updateBtn"
+          class="edit-button hidden"
+        >
+          ✏️ UPDATE GITHUB
+        </button>
+
+        <button
+          id="clearBtn"
+          type="button"
+          class="danger"
+        >
+          CLEAR
+        </button>
+
+      </div>
+
+
+      <div class="hint">
+        新文章使用「PUBLISH TO GITHUB」。
+        编辑已有文章时使用「UPDATE GITHUB」。
+        真正写入 GitHub 的操作由 GitHub Actions 完成。
+      </div>
+
+    </section>
+
+
+    <!-- EDITOR AREA -->
+
+    <section class="panel">
+
       <div class="grid">
 
         <div>
+
           <label>
             文件名
-            <input id="filename" placeholder="my-first-article" />
+
+            <input
+              id="filename"
+              placeholder="my-first-article"
+            />
           </label>
+
 
           <label>
             标题
-            <input id="title" placeholder="文章标题" />
+
+            <input
+              id="title"
+              placeholder="文章 标题"
+            />
           </label>
+
 
           <label>
             描述
-            <input id="description" placeholder="文章简介" />
+
+            <input
+              id="description"
+              placeholder="文章简介"
+            />
           </label>
+
 
           <label>
             标签
-            <input id="tags" placeholder="NEXUS, SYSTEM, NOTE" />
+
+            <input
+              id="tags"
+              placeholder="NEXUS, SYSTEM, NOTE"
+            />
           </label>
+
 
           <label>
             Markdown
-            <textarea id="content" placeholder="# 你的文章
 
-nano generate.py Markdown……"></textarea>
+            <textarea
+              id="content"
+              placeholder="# 你的文章
+
+nano generate.py Markdown……"
+            ></textarea>
           </label>
+
         </div>
 
+
         <div>
-          <div class="hint">LIVE PREVIEW</div>
-          <div id="preview" class="preview"></div>
+
+          <div class="hint">
+            LIVE PREVIEW
+          </div>
+
+          <div
+            id="preview"
+            class="preview"
+          ></div>
+
         </div>
 
       </div>
 
-      <div id="status" class="status">SYSTEM READY</div>
+
+      <div
+        id="status"
+        class="status"
+      >
+        SYSTEM READY
+      </div>
+
     </section>
 
   </main>
 
+
 <script>
 import { pinyin } from 'pinyin-pro';
+
 const KEY = 'nexus-admin-draft';
 
-const filename = document.getElementById('filename');
-const title = document.getElementById('title');
-const description = document.getElementById('description');
-const tags = document.getElementById('tags');
-const content = document.getElementById('content');
-const preview = document.getElementById('preview');
-const status = document.getElementById('status');
+const filename =
+  document.getElementById('filename');
+
+const title =
+  document.getElementById('title');
+
+const description =
+  document.getElementById('description');
+
+const tags =
+  document.getElementById('tags');
+
+const content =
+  document.getElementById('content');
+
+const preview =
+  document.getElementById('preview');
+
+const status =
+  document.getElementById('status');
+
+const updateBtn =
+  document.getElementById('updateBtn');
+
+const publishBtn =
+  document.getElementById('publishBtn');
+
+const editingBadge =
+  document.getElementById('editingBadge');
+
+
+/*
+ * ARTICLES GENERATED BY ASTRO
+ */
+
+const ARTICLES = JSON.parse(
+  JSON.stringify(
+    articleList
+  )
+);
+
+
+/*
+ * CURRENT EDITING STATE
+ */
+
+let editingSlug = '';
+
+
+/*
+ * STATUS
+ */
 
 function setStatus(text) {
   status.textContent = text;
 }
 
+
+/*
+ * PINYIN SLUG
+ */
+
 function slugify(value) {
+
   const converted = pinyin(value, {
     toneType: 'none',
     type: 'string',
@@ -268,138 +787,528 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '');
 }
 
+
+/*
+ * COLLECT
+ */
+
 function collect() {
+
   return {
     filename: filename.value.trim(),
+
     title: title.value.trim(),
-    description: description.value.trim(),
-    tags: tags.value.trim(),
-    content: content.value
+
+    description:
+      description.value.trim(),
+
+    tags:
+      tags.value.trim(),
+
+    content:
+      content.value
   };
+
 }
+
+
+/*
+ * SAVE DRAFT
+ */
 
 function saveDraft() {
-  localStorage.setItem(KEY, JSON.stringify(collect()));
+
+  localStorage.setItem(
+    KEY,
+    JSON.stringify(
+      collect()
+    )
+  );
+
   setStatus('DRAFT SAVED');
+
 }
 
+
+/*
+ * LOAD DRAFT
+ */
+
 function loadDraft() {
-  const raw = localStorage.getItem(KEY);
+
+  const raw =
+    localStorage.getItem(KEY);
 
   if (!raw) {
     return;
   }
 
   try {
-    const data = JSON.parse(raw);
 
-    filename.value = data.filename || '';
-    title.value = data.title || '';
-    description.value = data.description || '';
-    tags.value = data.tags || '';
-    content.value = data.content || '';
+    const data =
+      JSON.parse(raw);
+
+    filename.value =
+      data.filename || '';
+
+    title.value =
+      data.title || '';
+
+    description.value =
+      data.description || '';
+
+    tags.value =
+      data.tags || '';
+
+    content.value =
+      data.content || '';
 
     updatePreview();
+
     setStatus('DRAFT LOADED');
+
   } catch {
+
     setStatus('DRAFT LOAD ERROR');
+
   }
+
 }
 
+
+/*
+ * NEW ARTICLE
+ */
+
 function newArticle() {
+
+  editingSlug = '';
+
+  editingBadge.classList.add('hidden');
+
+  updateBtn.classList.add('hidden');
+
+  publishBtn.classList.remove('hidden');
+
   filename.value = '';
+
   title.value = '';
+
   description.value = '';
+
   tags.value = '';
+
   content.value = '';
 
   updatePreview();
+
   setStatus('NEW ARTICLE READY');
+
 }
+
+
+/*
+ * LOAD ARTICLE INTO EDITOR
+ */
+
+function loadArticle(slug) {
+
+  const article =
+    ARTICLES.find(
+      item => item.slug === slug
+    );
+
+  if (!article) {
+
+    setStatus(
+      'ERROR: ARTICLE NOT FOUND'
+    );
+
+    return;
+  }
+
+
+  editingSlug =
+    article.slug;
+
+
+  filename.value =
+    article.slug;
+
+
+  title.value =
+    article.title || '';
+
+
+  description.value =
+    article.description || '';
+
+
+  tags.value =
+    (article.tags || []).join(', ');
+
+
+  content.value =
+    article.content || '';
+
+
+  editingBadge.classList.remove(
+    'hidden'
+  );
+
+  updateBtn.classList.remove(
+    'hidden'
+  );
+
+  publishBtn.classList.add(
+    'hidden'
+  );
+
+
+  updatePreview();
+
+  setStatus(
+    'ARTICLE LOADED: ' +
+    article.title
+  );
+
+
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: 'smooth'
+  });
+
+}
+
+
+/*
+ * ESCAPE HTML
+ */
 
 function escapeHtml(str) {
+
   return str
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+    .replaceAll(
+      '&',
+      '&amp;'
+    )
+    .replaceAll(
+      '<',
+      '&lt;'
+    )
+    .replaceAll(
+      '>',
+      '&gt;'
+    )
+    .replaceAll(
+      '"',
+      '&quot;'
+    );
+
 }
+
+
+/*
+ * SIMPLE MARKDOWN
+ */
 
 function simpleMarkdown(md) {
-  let html = escapeHtml(md);
 
-  html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.*)$/gm, '<h1>$1</h1>');
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  html = html.replace(/^- (.*)$/gm, '<li>$1</li>');
-  html = html.replace(/\n\n/g, '<br><br>');
-  html = html.replace(/\n/g, '<br>');
+  let html =
+    escapeHtml(md);
+
+
+  html =
+    html.replace(
+      /^### (.*)$/gm,
+      '<h3>$1</h3>'
+    );
+
+
+  html =
+    html.replace(
+      /^## (.*)$/gm,
+      '<h2>$1</h2>'
+    );
+
+
+  html =
+    html.replace(
+      /^# (.*)$/gm,
+      '<h1>$1</h1>'
+    );
+
+
+  html =
+    html.replace(
+      /\*\*(.*?)\*\*/g,
+      '<strong>$1</strong>'
+    );
+
+
+  html =
+    html.replace(
+      /`([^`]+)`/g,
+      '<code>$1</code>'
+    );
+
+
+  html =
+    html.replace(
+      /^- (.*)$/gm,
+      '<li>$1</li>'
+    );
+
+
+  html =
+    html.replace(
+      /\n\n/g,
+      '<br><br>'
+    );
+
+
+  html =
+    html.replace(
+      /\n/g,
+      '<br>'
+    );
+
 
   return html;
+
 }
+
+
+/*
+ * PREVIEW
+ */
 
 function updatePreview() {
-  preview.innerHTML = simpleMarkdown(content.value || '暂无内容');
+
+  preview.innerHTML =
+    simpleMarkdown(
+      content.value ||
+      '暂无内容'
+    );
+
 }
+
+
+/*
+ * MARKDOWN GENERATOR
+ */
 
 function makeMarkdown() {
-  const data = collect();
 
-  const safeTitle = data.title.replaceAll('"', '\\"');
-  const safeDescription = data.description.replaceAll('"', '\\"');
+  const data =
+    collect();
 
-  const tagList = data.tags
-    .split(',')
-    .map(x => x.trim())
-    .filter(Boolean);
 
-  let output = '---\n';
+  const safeTitle =
+    data.title.replaceAll(
+      '"',
+      '\\"'
+    );
 
-  output += `title: "${safeTitle}"\n`;
-  output += `description: "${safeDescription}"\n`;
-  output += `pubDate: ${new Date().toISOString().slice(0, 10)}\n`;
-  output += 'tags:\n';
 
-  for (const tag of tagList) {
-    output += `  - "${tag.replaceAll('"', '\\"')}"\n`;
+  const safeDescription =
+    data.description.replaceAll(
+      '"',
+      '\\"'
+    );
+
+
+  const tagList =
+    data.tags
+      .split(',')
+      .map(
+        x => x.trim()
+      )
+      .filter(Boolean);
+
+
+  let output =
+    '---\n';
+
+
+  output +=
+    `title: "${safeTitle}"\n`;
+
+
+  output +=
+    `description: "${safeDescription}"\n`;
+
+
+  output +=
+    `pubDate: ${
+      new Date()
+        .toISOString()
+        .slice(0, 10)
+    }\n`;
+
+
+  output +=
+    'tags:\n';
+
+
+  for (
+    const tag of tagList
+  ) {
+
+    output +=
+      `  - "${tag.replaceAll(
+        '"',
+        '\\"'
+      )}"\n`;
+
   }
 
-  output += '---\n\n';
-  output += data.content;
+
+  output +=
+    '---\n\n';
+
+
+  output +=
+    data.content;
+
 
   return output;
+
 }
 
 
-window.publishToGitHub = function () {
-  const data = collect();
+/*
+ * CREATE GITHUB ISSUE
+ */
 
-  if (!data.title) {
-    setStatus('ERROR: TITLE REQUIRED');
-    return;
-  }
+function openGitHubIssue(
+  issueTitle,
+  body
+) {
 
-  if (!data.content.trim()) {
-    setStatus('ERROR: CONTENT REQUIRED');
-    return;
-  }
+  const params =
+    new URLSearchParams();
 
-  let name = data.filename.trim();
 
-  if (!name) {
-    name = slugify(data.title);
-  }
+  params.set(
+    'title',
+    issueTitle
+  );
 
-  if (!name) {
-    setStatus('ERROR: INVALID FILENAME');
-    return;
-  }
 
-  name = name.replace(/\.md$/i, '');
+  params.set(
+    'body',
+    body
+  );
 
-  const body =
+
+  const url =
+    'https://github.com/TOpenSource/TOpenSource.github.io/issues/new?' +
+    params.toString();
+
+
+  const link =
+    document.createElement('a');
+
+
+  link.href =
+    url;
+
+
+  link.target =
+    '_blank';
+
+
+  link.rel =
+    'noopener noreferrer';
+
+
+  link.style.display =
+    'none';
+
+
+  document.body.appendChild(
+    link
+  );
+
+
+  link.click();
+
+
+  setTimeout(
+    () => link.remove(),
+    1000
+  );
+
+}
+
+
+/*
+ * PUBLISH
+ */
+
+window.publishToGitHub =
+  function () {
+
+    const data =
+      collect();
+
+
+    if (!data.title) {
+
+      setStatus(
+        'ERROR: TITLE REQUIRED'
+      );
+
+      return;
+
+    }
+
+
+    if (!data.content.trim()) {
+
+      setStatus(
+        'ERROR: CONTENT REQUIRED'
+      );
+
+      return;
+
+    }
+
+
+    let name =
+      data.filename.trim();
+
+
+    if (!name) {
+
+      name =
+        slugify(
+          data.title
+        );
+
+    }
+
+
+    if (!name) {
+
+      setStatus(
+        'ERROR: INVALID FILENAME'
+      );
+
+      return;
+
+    }
+
+
+    name =
+      name.replace(
+        /\.md$/i,
+        ''
+      );
+
+
+    const body =
 `<!-- NEXUS_PUBLISH_START -->
 NEXUS_FILENAME=${name}
 NEXUS_TITLE=${data.title.replace(/\n/g, ' ')}
@@ -411,100 +1320,517 @@ NEXUS_TAGS=${data.tags.replace(/\n/g, ' ')}
 ${data.content}
 <!-- NEXUS_CONTENT_END -->`;
 
-  const params = new URLSearchParams();
-  params.set('title', '[NEXUS PUBLISH] ' + data.title);
-  params.set('body', body);
 
-  const url =
-    'https://github.com/TOpenSource/TOpenSource/issues/new?' +
-    params.toString();
+    setStatus(
+      'OPENING GITHUB PUBLISH TERMINAL...'
+    );
 
-  setStatus('OPENING GITHUB PUBLISH TERMINAL...');
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.style.display = 'none';
+    openGitHubIssue(
+      '[NEXUS PUBLISH] ' +
+      data.title,
+      body
+    );
 
-  document.body.appendChild(link);
-  link.click();
+  };
 
-  setTimeout(() => {
-    link.remove();
-  }, 1000);
-};
 
-function exportMarkdown() {
-  let name = filename.value.trim();
+/*
+ * UPDATE EXISTING ARTICLE
+ */
 
-  if (!name) {
-    name = slugify(title.value);
-  }
+function updateToGitHub() {
 
-  if (!name) {
-    setStatus('ERROR: PLEASE ENTER A TITLE');
+  if (!editingSlug) {
+
+    setStatus(
+      'ERROR: NO ARTICLE SELECTED'
+    );
+
     return;
+
   }
 
-  if (!name.endsWith('.md')) {
-    name += '.md';
+
+  const data =
+    collect();
+
+
+  if (!data.title) {
+
+    setStatus(
+      'ERROR: TITLE REQUIRED'
+    );
+
+    return;
+
   }
 
-  const blob = new Blob(
-    [makeMarkdown()],
-    { type: 'text/markdown;charset=utf-8' }
+
+  if (!data.content.trim()) {
+
+    setStatus(
+      'ERROR: CONTENT REQUIRED'
+    );
+
+    return;
+
+  }
+
+
+  const oldSlug =
+    editingSlug;
+
+
+  let newName =
+    data.filename.trim();
+
+
+  if (!newName) {
+
+    newName =
+      slugify(
+        data.title
+      );
+
+  }
+
+
+  newName =
+    newName.replace(
+      /\.md$/i,
+      ''
+    );
+
+
+  if (!newName) {
+
+    setStatus(
+      'ERROR: INVALID FILENAME'
+    );
+
+    return;
+
+  }
+
+
+  const body =
+`<!-- NEXUS_EDIT_START -->
+NEXUS_OLD_FILENAME=${oldSlug}
+NEXUS_FILENAME=${newName}
+NEXUS_TITLE=${data.title.replace(/\n/g, ' ')}
+NEXUS_DESCRIPTION=${data.description.replace(/\n/g, ' ')}
+NEXUS_TAGS=${data.tags.replace(/\n/g, ' ')}
+<!-- NEXUS_EDIT_END -->
+
+<!-- NEXUS_CONTENT_START -->
+${data.content}
+<!-- NEXUS_CONTENT_END -->`;
+
+
+  setStatus(
+    'OPENING GITHUB EDIT TERMINAL...'
   );
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
 
-  a.href = url;
-  a.download = name;
-  a.click();
+  openGitHubIssue(
+    '[NEXUS EDIT] ' +
+    data.title,
+    body
+  );
 
-  URL.revokeObjectURL(url);
-
-  setStatus(`EXPORTED: ${name}`);
 }
 
-document.getElementById('newBtn').addEventListener('click', newArticle);
 
-document.getElementById('saveBtn').addEventListener('click', saveDraft);
+/*
+ * DELETE ARTICLE
+ */
 
-document.getElementById('previewBtn').addEventListener('click', () => {
-  preview.classList.remove('hidden');
-  updatePreview();
-  setStatus('PREVIEW MODE');
-});
+function deleteArticle(
+  slug,
+  articleTitle
+) {
 
-document.getElementById('editBtn').addEventListener('click', () => {
-  content.focus();
-  setStatus('EDIT MODE');
-});
+  if (!slug) {
 
-document.getElementById('exportBtn').addEventListener('click', exportMarkdown);
+    setStatus(
+      'ERROR: INVALID ARTICLE'
+    );
 
+    return;
 
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-  if (confirm('确定清空当前文章？')) {
-    newArticle();
-    localStorage.removeItem(KEY);
-    setStatus('EDITOR CLEARED');
   }
-});
 
-content.addEventListener('input', updatePreview);
 
-title.addEventListener('input', () => {
-  if (!filename.value.trim()) {
-    filename.value = slugify(title.value);
+  const confirmed =
+    confirm(
+      '⚠️ 确认删除？\n\n' +
+      '《' +
+      articleTitle +
+      '》\n\n' +
+      '文件：' +
+      slug +
+      '.md\n\n' +
+      '此操作会从博客删除文章。\n\n' +
+      '确定继续吗？'
+    );
+
+
+  if (!confirmed) {
+
+    setStatus(
+      'DELETE CANCELLED'
+    );
+
+    return;
+
   }
-});
+
+
+  const body =
+`<!-- NEXUS_DELETE_START -->
+NEXUS_FILENAME=${slug}
+<!-- NEXUS_DELETE_END -->`;
+
+
+  setStatus(
+    'OPENING GITHUB DELETE TERMINAL...'
+  );
+
+
+  openGitHubIssue(
+    '[NEXUS DELETE] ' +
+    articleTitle,
+    body
+  );
+
+}
+
+
+/*
+ * EXPORT MARKDOWN
+ */
+
+function exportMarkdown() {
+
+  let name =
+    filename.value.trim();
+
+
+  if (!name) {
+
+    name =
+      slugify(
+        title.value
+      );
+
+  }
+
+
+  if (!name) {
+
+    setStatus(
+      'ERROR: PLEASE ENTER A TITLE'
+    );
+
+    return;
+
+  }
+
+
+  if (!name.endsWith('.md')) {
+
+    name += '.md';
+
+  }
+
+
+  const blob =
+    new Blob(
+      [makeMarkdown()],
+      {
+        type:
+          'text/markdown;charset=utf-8'
+      }
+    );
+
+
+  const url =
+    URL.createObjectURL(
+      blob
+    );
+
+
+  const a =
+    document.createElement('a');
+
+
+  a.href =
+    url;
+
+
+  a.download =
+    name;
+
+
+  a.click();
+
+
+  URL.revokeObjectURL(
+    url
+  );
+
+
+  setStatus(
+    `EXPORTED: ${name}`
+  );
+
+}
+
+
+/*
+ * ARTICLE MANAGER BUTTONS
+ */
+
+document
+  .querySelectorAll(
+    '[data-action="edit"]'
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        'click',
+        () => {
+
+          loadArticle(
+            button.dataset.slug
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+document
+  .querySelectorAll(
+    '[data-action="delete"]'
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        'click',
+        () => {
+
+          deleteArticle(
+            button.dataset.slug,
+            button.dataset.title
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+/*
+ * REFRESH
+ */
+
+document
+  .getElementById(
+    'refreshManagerBtn'
+  )
+  .addEventListener(
+    'click',
+    () => {
+
+      location.reload();
+
+    }
+  );
+
+
+/*
+ * NEW
+ */
+
+document
+  .getElementById(
+    'newBtn'
+  )
+  .addEventListener(
+    'click',
+    newArticle
+  );
+
+
+/*
+ * SAVE DRAFT
+ */
+
+document
+  .getElementById(
+    'saveBtn'
+  )
+  .addEventListener(
+    'click',
+    saveDraft
+  );
+
+
+/*
+ * PREVIEW
+ */
+
+document
+  .getElementById(
+    'previewBtn'
+  )
+  .addEventListener(
+    'click',
+    () => {
+
+      preview.classList.remove(
+        'hidden'
+      );
+
+      updatePreview();
+
+      setStatus(
+        'PREVIEW MODE'
+      );
+
+    }
+  );
+
+
+/*
+ * EDIT MODE
+ */
+
+document
+  .getElementById(
+    'editBtn'
+  )
+  .addEventListener(
+    'click',
+    () => {
+
+      content.focus();
+
+      setStatus(
+        'EDIT MODE'
+      );
+
+    }
+  );
+
+
+/*
+ * EXPORT
+ */
+
+document
+  .getElementById(
+    'exportBtn'
+  )
+  .addEventListener(
+    'click',
+    exportMarkdown
+  );
+
+
+/*
+ * UPDATE
+ */
+
+updateBtn.addEventListener(
+  'click',
+  updateToGitHub
+);
+
+
+/*
+ * CLEAR
+ */
+
+document
+  .getElementById(
+    'clearBtn'
+  )
+  .addEventListener(
+    'click',
+    () => {
+
+      if (
+        confirm(
+          '确定清空当前文章？'
+        )
+      ) {
+
+        newArticle();
+
+        localStorage.removeItem(
+          KEY
+        );
+
+        setStatus(
+          'EDITOR CLEARED'
+        );
+
+      }
+
+    }
+  );
+
+
+/*
+ * LIVE PREVIEW
+ */
+
+content.addEventListener(
+  'input',
+  updatePreview
+);
+
+
+/*
+ * AUTO PINYIN
+ */
+
+title.addEventListener(
+  'input',
+  () => {
+
+    if (
+      !filename.value.trim() &&
+      !editingSlug
+    ) {
+
+      filename.value =
+        slugify(
+          title.value
+        );
+
+    }
+
+  }
+);
+
+
+/*
+ * INITIALIZE
+ */
 
 loadDraft();
+
 updatePreview();
+
 </script>
 
 </body>
