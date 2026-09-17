@@ -51,6 +51,29 @@ const { Content } = await render(post);
       font-size: clamp(30px, 8vw, 55px);
     }
 
+    .post-header {
+      position: relative;
+    }
+
+    .delete-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 8px 12px;
+      border: 1px solid #ff4f6d;
+      background: transparent;
+      color: #ff4f6d;
+      font-family: monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .delete-button:hover {
+      background: #ff4f6d;
+      color: #05070a;
+    }
+
     .date {
       color: #4ffcff;
       font-size: 12px;
@@ -88,16 +111,58 @@ const { Content } = await render(post);
       <a href="/">← RETURN TO ARCHIVE</a>
     </div>
 
-    <div class="date">
-      {post.data.pubDate.toLocaleDateString('zh-CN')}
-    </div>
+    <div class="post-header">
 
-    <h1>{post.data.title}</h1>
+      <button
+        id="deleteArticle"
+        class="delete-button"
+        type="button"
+      >
+        🗑 DELETE
+      </button>
+
+      <div class="date">
+        {post.data.pubDate.toLocaleDateString('zh-CN')}
+      </div>
+
+      <h1>{post.data.title}</h1>
+
+    </div>
 
     <article>
       <Content />
     </article>
 
   </main>
+
+  <script define:vars={{ filename: post.id, title: post.data.title }}>
+    const deleteButton =
+      document.getElementById('deleteArticle');
+
+    deleteButton.addEventListener('click', () => {
+
+      const confirmed = confirm(
+        `DELETE THIS ARTICLE?\n\n${title}\n\nThis will create a GitHub deletion request.`
+      );
+
+      if (!confirmed) return;
+
+      const issueTitle =
+        `[NEXUS DELETE] ${title}`;
+
+      const issueBody =
+        `<!-- NEXUS_DELETE_START -->\n` +
+        `NEXUS_FILENAME=${filename}\n` +
+        `<!-- NEXUS_DELETE_END -->`;
+
+      const url =
+        'https://github.com/TOpenSource/TOpenSource.github.io/issues/new' +
+        '?title=' + encodeURIComponent(issueTitle) +
+        '&body=' + encodeURIComponent(issueBody);
+
+      window.location.href = url;
+    });
+  </script>
+
 </body>
 </html>
