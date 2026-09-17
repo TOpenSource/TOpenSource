@@ -280,12 +280,14 @@ jobs:
                   f"pubDate: {pub_date}"
               )
 
-              output.append("tags:")
-
-              for tag in tag_list:
-                  output.append(
-                      f'  - "{yaml_string(tag)}"'
-                  )
+              if tag_list:
+                  output.append("tags:")
+                  for tag in tag_list:
+                      output.append(
+                          f'  - "{yaml_string(tag)}"'
+                      )
+              else:
+                  output.append("tags: []")
 
               output.append("---")
               output.append("")
