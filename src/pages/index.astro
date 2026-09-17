@@ -1,5 +1,6 @@
 ---
 import KeepAndroidOpen from '../components/KeepAndroidOpen.astro';
+import NexusPopup from '../components/NexusPopup.astro';
 import { getCollection } from 'astro:content';
 
 const posts = await getCollection('posts');
@@ -187,6 +188,7 @@ const posts = await getCollection('posts');
 </head>
 
 <body>
+  <NexusPopup />
   <KeepAndroidOpen />
   <main class="wrap">
 

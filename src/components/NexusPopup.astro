@@ -1,0 +1,184 @@
+<div id="nexus-ad" class="nexus-ad">
+  <div class="nexus-ad-backdrop"></div>
+
+  <div class="nexus-ad-box">
+    <button
+      id="nexus-ad-close"
+      class="nexus-ad-close"
+      type="button"
+      aria-label="关闭"
+    >
+      ×
+    </button>
+
+    <div class="nexus-ad-icon">👾</div>
+
+    <div class="nexus-ad-label">
+      NEXUS // NOTICE
+    </div>
+
+    <h2>这里是测试广告</h2>
+
+    <p>
+      这是一个弹窗广告测试。
+      以后可以在这里放你的广告内容。
+    </p>
+
+    <a
+      class="nexus-ad-button"
+      href="https://TOpenSource.github.io/"
+    >
+      立即查看
+    </a>
+  </div>
+</div>
+
+<script>
+  const popup =
+    document.getElementById('nexus-ad');
+
+  const close =
+    document.getElementById('nexus-ad-close');
+
+  if (popup && close) {
+    close.addEventListener('click', () => {
+      popup.classList.add('hidden');
+    });
+  }
+</script>
+
+<style>
+  .nexus-ad {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nexus-ad.hidden {
+    display: none;
+  }
+
+  .nexus-ad-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(5px);
+  }
+
+  .nexus-ad-box {
+    position: relative;
+    z-index: 1;
+    width: min(420px, calc(100% - 36px));
+    padding: 32px 26px 28px;
+    box-sizing: border-box;
+
+    background: #05070a;
+    border: 1px solid #4ffcff;
+    box-shadow:
+      0 0 20px rgba(79, 252, 255, 0.25),
+      0 0 60px rgba(79, 252, 255, 0.08);
+
+    color: #d7f9ff;
+    font-family: monospace;
+    text-align: center;
+
+    animation: nexus-popup 0.25s ease-out;
+  }
+
+  .nexus-ad-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+
+    border: 0;
+    background: transparent;
+    color: #6f8b91;
+
+    font-family: monospace;
+    font-size: 26px;
+    cursor: pointer;
+  }
+
+  .nexus-ad-close:hover {
+    color: #4ffcff;
+  }
+
+  .nexus-ad-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+
+    filter:
+      drop-shadow(0 0 7px rgba(79, 252, 255, 0.8));
+  }
+
+  .nexus-ad-label {
+    color: #4ffcff;
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+
+  .nexus-ad-box h2 {
+    margin: 0 0 12px;
+    font-size: 24px;
+    color: #ffffff;
+  }
+
+  .nexus-ad-box p {
+    margin: 0 auto 24px;
+    max-width: 330px;
+    color: #9bb8bd;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .nexus-ad-button {
+    display: inline-block;
+    padding: 10px 22px;
+
+    border: 1px solid #4ffcff;
+    color: #4ffcff;
+    text-decoration: none;
+
+    font-size: 12px;
+    letter-spacing: 1px;
+
+    transition: 0.2s;
+  }
+
+  .nexus-ad-button:hover {
+    background: #4ffcff;
+    color: #05070a;
+    box-shadow:
+      0 0 18px rgba(79, 252, 255, 0.45);
+  }
+
+  @keyframes nexus-popup {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .nexus-ad-box {
+      padding: 28px 20px 24px;
+    }
+
+    .nexus-ad-icon {
+      font-size: 36px;
+    }
+
+    .nexus-ad-box h2 {
+      font-size: 21px;
+    }
+  }
+</style>
