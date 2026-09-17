@@ -366,7 +366,7 @@ function makeMarkdown() {
 }
 
 
-function publishToGitHub() {
+window.publishToGitHub = function () {
   const data = collect();
 
   if (!data.title) {
