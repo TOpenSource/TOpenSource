@@ -161,6 +161,25 @@ const { Content } = await render(post);
       <Content />
     </article>
 
+    <section class="comments">
+      <script
+        src="https://giscus.app/client.js"
+        data-repo="TOpenSource/TOpenSource.github.io"
+        data-repo-id="R_kgDOUe6fhQ"
+        data-category="Comments"
+        data-category-id="DIC_kwDOUe6fhc4DF155"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="catppuccin_mocha"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async
+      ></script>
+    </section>
+
   </main>
 
   <script define:vars={{ filename: post.id, title: post.data.title }}>
