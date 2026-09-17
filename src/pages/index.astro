@@ -1,4 +1,5 @@
 ---
+import KeepAndroidOpen from '../components/KeepAndroidOpen.astro';
 import { getCollection } from 'astro:content';
 
 const posts = await getCollection('posts');
@@ -186,6 +187,7 @@ const posts = await getCollection('posts');
 </head>
 
 <body>
+  <KeepAndroidOpen />
   <main class="wrap">
 
     <header>
