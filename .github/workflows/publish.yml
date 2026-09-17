@@ -49,27 +49,16 @@ jobs:
 
           print("Issue:", title)
 
-          # ----------------------------------------
-          # Detect operation
-          # ----------------------------------------
-
           if title.startswith("[NEXUS PUBLISH]"):
               action = "publish"
-
           elif title.startswith("[NEXUS EDIT]"):
               action = "edit"
-
           elif title.startswith("[NEXUS DELETE]"):
               action = "delete"
-
           else:
               raise SystemExit("Unsupported NEXUS operation")
 
           print("Operation:", action)
-
-          # ----------------------------------------
-          # Safe filename
-          # ----------------------------------------
 
           def safe_filename(value):
               value = value.strip()
@@ -103,10 +92,6 @@ jobs:
 
               return value + ".md"
 
-          # ----------------------------------------
-          # Read metadata
-          # ----------------------------------------
-
           def get_value(meta, name):
               match = re.search(
                   rf"^NEXUS_{name}=(.*)$",
@@ -119,10 +104,6 @@ jobs:
 
               return ""
 
-          # ----------------------------------------
-          # DELETE
-          # ----------------------------------------
-
           if action == "delete":
 
               match = re.search(
@@ -132,25 +113,15 @@ jobs:
               )
 
               if not match:
-                  raise SystemExit(
-                      "Invalid NEXUS delete payload"
-                  )
+                  raise SystemExit("Invalid NEXUS delete payload")
 
               meta = match.group(1).strip()
 
-              filename = get_value(
-                  meta,
-                  "FILENAME"
-              )
-
               filename = safe_filename(
-                  filename
+                  get_value(meta, "FILENAME")
               )
 
-              path = (
-                  Path("src/content/posts")
-                  / filename
-              )
+              path = Path("src/content/posts") / filename
 
               print("Delete target:", path)
 
@@ -161,13 +132,7 @@ jobs:
 
               path.unlink()
 
-              print(
-                  f"Deleted: {path}"
-              )
-
-          # ----------------------------------------
-          # PUBLISH / EDIT
-          # ----------------------------------------
+              print("Deleted:", path)
 
           else:
 
@@ -184,101 +149,47 @@ jobs:
               )
 
               if not meta_match:
-                  raise SystemExit(
-                      "Invalid NEXUS metadata payload"
-                  )
+                  raise SystemExit("Invalid NEXUS metadata payload")
 
               if not content_match:
-                  raise SystemExit(
-                      "Missing article content"
-                  )
+                  raise SystemExit("Missing article content")
 
               meta = meta_match.group(1).strip()
+              content = content_match.group(1).strip()
 
-              content = (
-                  content_match
-                  .group(1)
-                  .strip()
-              )
-
-              filename = get_value(
-                  meta,
-                  "FILENAME"
-              )
-
-              old_filename = get_value(
-                  meta,
-                  "OLD_FILENAME"
-              )
-
-              article_title = get_value(
-                  meta,
-                  "TITLE"
-              )
-
-              description = get_value(
-                  meta,
-                  "DESCRIPTION"
-              )
-
-              tags = get_value(
-                  meta,
-                  "TAGS"
-              )
+              filename = get_value(meta, "FILENAME")
+              old_filename = get_value(meta, "OLD_FILENAME")
+              article_title = get_value(meta, "TITLE")
+              description = get_value(meta, "DESCRIPTION")
+              tags = get_value(meta, "TAGS")
 
               if not article_title:
-                  raise SystemExit(
-                      "Missing title"
-                  )
+                  raise SystemExit("Missing title")
 
               if not content:
-                  raise SystemExit(
-                      "Empty article content"
-                  )
+                  raise SystemExit("Empty article content")
 
-              filename = safe_filename(
-                  filename
-              )
+              filename = safe_filename(filename)
 
-              target = (
-                  Path("src/content/posts")
-                  / filename
-              )
-
-              # ----------------------------------------
-              # EDIT
-              # ----------------------------------------
+              target = Path("src/content/posts") / filename
 
               if action == "edit":
 
                   if old_filename:
-                      old_filename = safe_filename(
-                          old_filename
-                      )
+                      old_filename = safe_filename(old_filename)
                   else:
                       old_filename = filename
 
-                  old_path = (
-                      Path("src/content/posts")
-                      / old_filename
-                  )
+                  old_path = Path("src/content/posts") / old_filename
 
-                  print(
-                      "Edit source:",
-                      old_path
-                  )
-
-                  print(
-                      "Edit target:",
-                      target
-                  )
+                  print("Edit source:", old_path)
+                  print("Edit target:", target)
 
                   if not old_path.exists():
                       raise SystemExit(
                           f"Article does not exist: {old_path}"
                       )
 
-                  # Preserve original publication date
                   existing = old_path.read_text(
                       encoding="utf-8"
                   )
@@ -290,22 +201,12 @@ jobs:
                   )
 
                   if date_match:
-                      pub_date = (
-                          date_match
-                          .group(1)
-                          .strip()
-                      )
+                      pub_date = date_match.group(1).strip()
                   else:
-                      pub_date = (
-                          datetime.now(
-                              timezone.utc
-                          ).strftime(
-                              "%Y-%m-%d"
-                          )
-                      )
+                      pub_date = datetime.now(
+                          timezone.utc
+                      ).strftime("%Y-%m-%d")
 
-                  # Prevent accidental overwrite
-                  # when filename is changed
                   if target != old_path and target.exists():
                       raise SystemExit(
                           f"Target article already exists: {target}"
@@ -314,59 +215,26 @@ jobs:
                   if target != old_path:
                       old_path.unlink()
 
-              # ----------------------------------------
-              # PUBLISH
-              # ----------------------------------------
-
               else:
 
-                  pub_date = (
-                      datetime.now(
-                          timezone.utc
-                      ).strftime(
-                          "%Y-%m-%d"
-                      )
-                  )
+                  pub_date = datetime.now(
+                      timezone.utc
+                  ).strftime("%Y-%m-%d")
 
                   if target.exists():
                       raise SystemExit(
                           f"Article already exists: {target}"
                       )
 
-              # ----------------------------------------
-              # YAML escaping
-              # ----------------------------------------
-
               def yaml_string(value):
-                  value = value.replace(
-                      "\\",
-                      "\\\\"
-                  )
-
-                  value = value.replace(
-                      '"',
-                      '\\"'
-                  )
-
-                  value = value.replace(
-                      "\r",
-                      " "
-                  )
-
-                  value = value.replace(
-                      "\n",
-                      " "
-                  )
-
+                  value = value.replace("\\", "\\\\")
+                  value = value.replace('"', '\\"')
+                  value = value.replace("\r", " ")
+                  value = value.replace("\n", " ")
                   return value
 
-              article_title = yaml_string(
-                  article_title
-              )
-
-              description = yaml_string(
-                  description
-              )
+              article_title = yaml_string(article_title)
+              description = yaml_string(description)
 
               tag_list = [
                   item.strip()
@@ -374,38 +242,24 @@ jobs:
                   if item.strip()
               ]
 
-              # ----------------------------------------
-              # Generate Markdown
-              # ----------------------------------------
-
               output = []
 
               output.append("---")
-
               output.append(
                   f'title: "{article_title}"'
               )
-
               output.append(
                   f'description: "{description}"'
               )
-
               output.append(
                   f"pubDate: {pub_date}"
               )
 
-              output.append(
-                  "tags:"
-              )
+              output.append("tags:")
 
               for tag in tag_list:
-
-                  tag = yaml_string(
-                      tag
-                  )
-
                   output.append(
-                      f'  - "{tag}"'
+                      f'  - "{yaml_string(tag)}"'
                   )
 
               output.append("---")
@@ -423,9 +277,7 @@ jobs:
                   encoding="utf-8"
               )
 
-              print(
-                  f"Created/updated: {target}"
-              )
+              print("Created/updated:", target)
 
           PY
 
@@ -434,18 +286,16 @@ jobs:
           set -e
 
           npm ci
-
           npm run build
 
       - name: Commit changes
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
           set -e
 
-          git config user.name \
-            "github-actions[bot]"
-
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -A src/content/posts/
 
@@ -454,26 +304,23 @@ jobs:
             exit 0
           fi
 
-          if [[ "$ISSUE_TITLE" == "[NEXUS PUBLISH]"* ]]; then
-            COMMIT_MESSAGE="Publish article from NEXUS Admin"
+          case "$ISSUE_TITLE" in
+            "[NEXUS PUBLISH]"*)
+              COMMIT_MESSAGE="Publish article from NEXUS Admin"
+              ;;
+            "[NEXUS EDIT]"*)
+              COMMIT_MESSAGE="Update article from NEXUS Admin"
+              ;;
+            "[NEXUS DELETE]"*)
+              COMMIT_MESSAGE="Delete article from NEXUS Admin"
+              ;;
+            *)
+              COMMIT_MESSAGE="NEXUS article management"
+              ;;
+          esac
 
-          elif [[ "$ISSUE_TITLE" == "[NEXUS EDIT]"* ]]; then
-            COMMIT_MESSAGE="Update article from NEXUS Admin"
-
-          elif [[ "$ISSUE_TITLE" == "[NEXUS DELETE]"* ]]; then
-            COMMIT_MESSAGE="Delete article from NEXUS Admin"
-
-          else
-            COMMIT_MESSAGE="NEXUS article management"
-          fi
-
-          git commit \
-            -m "$COMMIT_MESSAGE"
-
+          git commit -m "$COMMIT_MESSAGE"
           git push origin main
-
-        env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
 
       - name: Close issue
         if: success()
