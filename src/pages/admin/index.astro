@@ -1615,6 +1615,9 @@ const clearSearchBtn =
 const searchStatus =
   document.getElementById('searchStatus');
 
+console.log('[NEXUS ADMIN] ARTICLES:', ARTICLES.length);
+console.log('[NEXUS ADMIN] ARTICLE DATA:', ARTICLES);
+
 
 function renderArticleList(
   keyword = '',
@@ -1781,47 +1784,57 @@ function performArticleSearch() {
  * SEARCH BUTTON
  */
 
-searchArticleBtn.addEventListener(
-  'click',
-  performArticleSearch
-);
+if (searchArticleBtn) {
+  searchArticleBtn.addEventListener(
+    'click',
+    performArticleSearch
+  );
+}
 
 
 /*
  * ENTER TO SEARCH
  */
 
-articleSearch.addEventListener(
-  'keydown',
-  event => {
+if (articleSearch) {
+  articleSearch.addEventListener(
+    'keydown',
+    event => {
 
-    if (event.key === 'Enter') {
+      if (event.key === 'Enter') {
 
-      event.preventDefault();
+        event.preventDefault();
 
-      performArticleSearch();
+        performArticleSearch();
+
+      }
 
     }
-
-  }
-);
-
-
-clearSearchBtn.addEventListener(
-  'click',
-  () => {
-
-    articleSearch.value = '';
-
-    renderArticleList('');
-
-    articleSearch.focus();
-
-  }
-);
+  );
+}
 
 
-renderArticleList('');
+if (clearSearchBtn) {
+  clearSearchBtn.addEventListener(
+    'click',
+    () => {
+
+      if (articleSearch) {
+        articleSearch.value = '';
+      }
+
+      renderArticleList('');
+
+      if (articleSearch) {
+        articleSearch.focus();
+      }
+
+    }
+  );
+}
+
+
+renderArticleList('', 'all');
 
 /*
  * REFRESH
