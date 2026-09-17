@@ -778,14 +778,17 @@ function setStatus(text) {
  */
 
 function slugify(value) {
+  const text = String(value || '').trim();
 
-  const converted = pinyin(value, {
+  if (!text) return '';
+
+  const converted = pinyin(text, {
     toneType: 'none',
     type: 'string',
     nonZh: 'consecutive'
   });
 
-  return converted
+  return String(converted || '')
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
