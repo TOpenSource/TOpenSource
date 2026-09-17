@@ -187,6 +187,17 @@ jobs:
 
               target = Path("src/content/posts") / filename
 
+              # PUBLISH 自动处理重复文件名
+              if action == "publish":
+                  original_stem = target.stem
+                  suffix = 1
+
+                  while target.exists():
+                      suffix += 1
+                      target = Path("src/content/posts") / f"{original_stem}-{suffix}.md"
+
+                  filename = target.name
+
               if action == "edit":
 
                   if old_filename:
