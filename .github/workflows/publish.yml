@@ -20,7 +20,6 @@ jobs:
         startsWith(github.event.issue.title, '[NEXUS PUBLISH]') ||
         startsWith(github.event.issue.title, '[NEXUS EDIT]') ||
         startsWith(github.event.issue.title, '[NEXUS DELETE]')
-        || startsWith(github.event.issue.title, '[NEXUS CATEGORY DELETE]')
       )
 
     runs-on: ubuntu-latest
@@ -56,8 +55,6 @@ jobs:
               action = "edit"
           elif title.startswith("[NEXUS DELETE]"):
               action = "delete"
-          elif title.startswith("[NEXUS CATEGORY DELETE]"):
-              action = "category_delete"
           else:
               raise SystemExit("Unsupported NEXUS operation")
 
@@ -120,70 +117,6 @@ jobs:
                   return match.group(1).strip()
 
               return ""
-
-          if action == "category_delete":
-              match = re.search(
-                  r"<!-- NEXUS_CATEGORY_DELETE_START -->(.*?)<!-- NEXUS_CATEGORY_DELETE_END -->",
-                  body,
-                  re.S
-              )
-
-              if not match:
-                  raise SystemExit("Invalid NEXUS category delete payload")
-
-              meta = match.group(1).strip()
-              category = get_value(meta, "CATEGORY").strip()
-
-              if not category:
-                  raise SystemExit("Missing category")
-
-              posts_dir = Path("src/content/posts")
-              changed = 0
-
-              for path in posts_dir.glob("*.md"):
-                  text = path.read_text(encoding="utf-8")
-
-                  fm = re.search(
-                      r"(?ms)^---\n(.*?)\n---\n",
-                      text
-                  )
-
-                  if not fm:
-                      continue
-
-                  front = fm.group(1)
-
-                  cm = re.search(
-                      r'(?m)^category:\s*["\']?(.*?)["\']?\s*$',
-                      front
-                  )
-
-                  if not cm:
-                      continue
-
-                  current = cm.group(1).strip().strip('"').strip("'")
-
-                  if current != category:
-                      continue
-
-                  new_front = re.sub(
-                      r"(?m)^category:.*$",
-                      'category: "未分类"',
-                      front,
-                      count=1
-                  )
-
-                  text = (
-                      text[:fm.start(1)]
-                      + new_front
-                      + text[fm.end(1):]
-                  )
-
-                  path.write_text(text, encoding="utf-8")
-                  changed += 1
-
-              print("Category deleted:", category)
-              print("Articles moved to 未分类:", changed)
 
           if action == "delete":
 
@@ -344,9 +277,6 @@ jobs:
               output.append(
                   f"pubDate: {pub_date}"
               )
-              output.append(
-                  f'category: "{yaml_string(category)}"'
-              )
 
               if tag_list:
                   output.append("tags:")
@@ -405,9 +335,6 @@ jobs:
               ;;
             "[NEXUS EDIT]"*)
               COMMIT_MESSAGE="Update article from NEXUS Admin"
-              ;;
-            "[NEXUS CATEGORY DELETE]"*)
-              COMMIT_MESSAGE="Delete category from NEXUS Admin"
               ;;
             "[NEXUS DELETE]"*)
               COMMIT_MESSAGE="Delete article from NEXUS Admin"
