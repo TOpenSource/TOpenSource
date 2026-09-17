@@ -10,52 +10,68 @@ permissions:
 
 jobs:
   publish:
-    if: github.event.issue.user.login == 'TOpenSource' && startsWith(github.event.issue.title, '[NEXUS PUBLISH]')
+    # 只允许：
+    # 1. TOpenSource 创建
+    # 2. Issue 标题以 [NEXUS PUBLISH] 开头
+    if: >
+      github.event.issue.user.login == 'TOpenSource' &&
+      startsWith(github.event.issue.title, '[NEXUS PUBLISH]')
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
 
       - name: Parse article
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
+          set -euo pipefail
+
           python3 <<'PY'
           import os
           import re
           from pathlib import Path
+          from datetime import datetime, timezone
 
           body = os.environ.get("ISSUE_BODY", "")
 
-          match = re.search(
+          meta_match = re.search(
               r'<!-- NEXUS_PUBLISH_START -->(.*?)<!-- NEXUS_PUBLISH_END -->',
               body,
               re.S
           )
 
-          if not match:
-              raise SystemExit("Invalid NEXUS publish payload")
-
-          meta = match.group(1).strip()
-
-          def get_value(name):
-              m = re.search(
-                  rf'^NEXUS_{name}=(.*)$',
-                  meta,
-                  re.MULTILINE
-              )
-              return m.group(1).strip() if m else ""
-
-          filename = get_value("FILENAME")
-          title = get_value("TITLE")
-          description = get_value("DESCRIPTION")
-          tags = get_value("TAGS")
           content_match = re.search(
               r'<!-- NEXUS_CONTENT_START -->(.*?)<!-- NEXUS_CONTENT_END -->',
               body,
               re.S
           )
+
+          if not meta_match:
+              raise SystemExit("Invalid NEXUS publish payload")
+
+          if not content_match:
+              raise SystemExit("Missing article content")
+
+          meta = meta_match.group(1).strip()
+          content = content_match.group(1).strip()
+
+          def get_value(name):
+              match = re.search(
+                  rf'^NEXUS_{name}=(.*)$',
+                  meta,
+                  re.MULTILINE
+              )
+              return match.group(1).strip() if match else ""
+
+          filename = get_value("FILENAME")
+          title = get_value("TITLE")
+          description = get_value("DESCRIPTION")
+          tags = get_value("TAGS")
 
           if not filename:
               raise SystemExit("Missing filename")
@@ -63,11 +79,10 @@ jobs:
           if not title:
               raise SystemExit("Missing title")
 
-          if not content_match:
-              raise SystemExit("Missing content")
+          if not content:
+              raise SystemExit("Empty article content")
 
-          content = content_match.group(1).strip()
-
+          # 只允许安全的文件名字符
           filename = re.sub(r'[^a-zA-Z0-9_-]', '-', filename)
           filename = re.sub(r'-+', '-', filename).strip('-')
 
@@ -77,8 +92,12 @@ jobs:
           if not filename.endswith(".md"):
               filename += ".md"
 
-          description = description.replace('"', '\\"')
+          # 防止路径穿越
+          if "/" in filename or "\\" in filename or ".." in filename:
+              raise SystemExit("Unsafe filename")
+
           title = title.replace('"', '\\"')
+          description = description.replace('"', '\\"')
 
           tag_list = [
               x.strip()
@@ -90,7 +109,7 @@ jobs:
               "---",
               f'title: "{title}"',
               f'description: "{description}"',
-              f'pubDate: {__import__("datetime").datetime.utcnow().strftime("%Y-%m-%d")}',
+              f'pubDate: {datetime.now(timezone.utc).strftime("%Y-%m-%d")}',
               "tags:"
           ]
 
@@ -107,26 +126,46 @@ jobs:
 
           path = Path("src/content/posts") / filename
           path.parent.mkdir(parents=True, exist_ok=True)
-          path.write_text("\n".join(output), encoding="utf-8")
+
+          # 不允许覆盖已经存在的文章
+          if path.exists():
+              raise SystemExit(
+                  f"Article already exists: {path}"
+              )
+
+          path.write_text(
+              "\n".join(output),
+              encoding="utf-8"
+          )
 
           print(f"Created: {path}")
           PY
 
+      - name: Build verification
+        run: |
+          set -e
+          npm ci
+          npm run build
+
       - name: Commit article
         run: |
+          set -e
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add src/content/posts/
 
-          git commit -m "Publish article from NEXUS Admin" || {
+          if git diff --cached --quiet; then
             echo "Nothing to commit"
             exit 0
-          }
+          fi
 
-          git push
+          git commit -m "Publish article from NEXUS Admin"
+          git push origin main
 
       - name: Close issue
+        if: success()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
