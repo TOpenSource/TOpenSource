@@ -13,6 +13,66 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  auth:
+    if: >
+      github.event.issue.user.login == 'TOpenSource' &&
+      startsWith(github.event.issue.title, '[NEXUS AUTH]')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Verify GitHub account
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+
+          echo "================================="
+          echo " NEXUS AUTH VERIFICATION"
+          echo "================================="
+
+          echo "GitHub account: ${{ github.event.issue.user.login }}"
+
+          slug="$(
+            printf '%s\n' "$ISSUE_BODY" |
+            sed -n 's/^NEXUS_EDIT_SLUG=//p' |
+            head -n 1 |
+            tr -d '\r'
+          )"
+
+          if [ -z "$slug" ]; then
+            echo "ERROR: Missing NEXUS_EDIT_SLUG"
+            exit 1
+          fi
+
+          if ! printf '%s' "$slug" | grep -Eq '^[A-Za-z0-9_-]+$'; then
+            echo "ERROR: Invalid article slug"
+            exit 1
+          fi
+
+          edit_url="https://TOpenSource.github.io/admin/?edit=${slug}"
+
+          echo "Verified account successfully."
+          echo "Article slug: $slug"
+          echo "Edit URL: $edit_url"
+
+          gh issue comment "$ISSUE_NUMBER"             --repo "$GITHUB_REPOSITORY"             --body "## NEXUS AUTH
+
+          ✅ **GitHub account verified**
+
+          Verified account: \`TOpenSource\`
+
+          ### Continue editing
+
+          [✎ CONTINUE EDITING]($edit_url)
+
+          After verification, the article editor will open automatically with the selected article."
+
+          gh issue close "$ISSUE_NUMBER"             --repo "$GITHUB_REPOSITORY"
+
   manage:
     if: >
       github.event.issue.user.login == 'TOpenSource' &&
