@@ -255,9 +255,14 @@ const articleList = posts.map((post) => ({
       min-width: 0;
     }
 
+    .search-button {
+      white-space: nowrap;
+      padding: 10px 16px;
+    }
+
     .search-clear {
-      width: 45px;
-      padding: 8px;
+      white-space: nowrap;
+      padding: 10px 14px;
       color: #8ba9a3;
     }
 
@@ -479,16 +484,24 @@ const articleList = posts.map((post) => ({
     <input
       type="search"
       id="articleSearch"
-      placeholder="🔎 搜索标题、文件名、描述、标签……"
+      placeholder="输入标题、文件名、描述、标签……"
       autocomplete="off"
     />
+
+    <button
+      type="button"
+      id="searchArticleBtn"
+      class="search-button"
+    >
+      🔎 SEARCH
+    </button>
 
     <button
       type="button"
       id="clearSearchBtn"
       class="search-clear"
     >
-      ✕
+      ✕ CLEAR
     </button>
 
   </div>
@@ -1772,13 +1785,45 @@ function renderArticleList(keyword = '') {
 }
 
 
-articleSearch.addEventListener(
-  'input',
+const searchArticleBtn =
+  document.getElementById(
+    'searchArticleBtn'
+  );
+
+
+/*
+ * SEARCH BUTTON
+ */
+
+searchArticleBtn.addEventListener(
+  'click',
   () => {
 
     renderArticleList(
       articleSearch.value
     );
+
+  }
+);
+
+
+/*
+ * ENTER TO SEARCH
+ */
+
+articleSearch.addEventListener(
+  'keydown',
+  event => {
+
+    if (event.key === 'Enter') {
+
+      event.preventDefault();
+
+      renderArticleList(
+        articleSearch.value
+      );
+
+    }
 
   }
 );
