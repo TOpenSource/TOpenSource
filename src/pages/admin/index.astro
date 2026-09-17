@@ -1,0 +1,655 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUS // ADMIN</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(0,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,255,.025) 1px, transparent 1px),
+        #040608;
+      background-size: 30px 30px;
+      color: #d8ffff;
+      font-family: monospace;
+    }
+
+    .top {
+      border-bottom: 1px solid #164c54;
+      background: rgba(0,15,20,.95);
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .top-inner {
+      width: min(1100px, 94%);
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      color: #00ffff;
+      font-size: 20px;
+      letter-spacing: 3px;
+      text-shadow: 0 0 12px rgba(0,255,255,.4);
+    }
+
+    .status {
+      color: #50aeb5;
+      font-size: 11px;
+    }
+
+    .container {
+      width: min(1100px, 94%);
+      margin: auto;
+      padding: 25px 0 60px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 20px;
+    }
+
+    .sidebar,
+    .panel {
+      border: 1px solid #16444c;
+      background: rgba(0,12,16,.85);
+    }
+
+    .sidebar {
+      padding: 15px;
+      height: fit-content;
+    }
+
+    .menu-title {
+      color: #527c82;
+      font-size: 11px;
+      margin: 8px 10px 12px;
+      letter-spacing: 2px;
+    }
+
+    .menu button {
+      width: 100%;
+      text-align: left;
+      padding: 13px;
+      margin-bottom: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #8db4b8;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .menu button:hover,
+    .menu button.active {
+      color: #00ffff;
+      border-color: #15535c;
+      background: #06191d;
+    }
+
+    .panel {
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .panel h1 {
+      margin: 0 0 6px;
+      color: #00ffff;
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
+
+    .sub {
+      color: #62858a;
+      font-size: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .stat {
+      border: 1px solid #16444c;
+      padding: 18px;
+      background: #050d10;
+    }
+
+    .stat-number {
+      color: #00ffff;
+      font-size: 28px;
+    }
+
+    .stat-label {
+      color: #64898e;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .post {
+      border: 1px solid #16444c;
+      padding: 18px;
+      margin-top: 12px;
+      background: #050d10;
+    }
+
+    .post-title {
+      color: #00ffff;
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .post-meta {
+      color: #527d82;
+      font-size: 11px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin: 10px 6px 0 0;
+      padding: 3px 7px;
+      border: 1px solid #20555d;
+      color: #65cbd2;
+      font-size: 10px;
+    }
+
+    .actions,
+    .editor-actions,
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .actions {
+      margin-top: 14px;
+    }
+
+    button.action,
+    button.publish,
+    button.preview {
+      padding: 10px 14px;
+      border: 1px solid #17616b;
+      background: #062025;
+      color: #00ffff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.publish {
+      border-color: #00ffff;
+      background: #00363b;
+    }
+
+    button.preview.active {
+      background: #07505a;
+    }
+
+    button:hover {
+      background: #07505a;
+    }
+
+    .editor {
+      display: none;
+    }
+
+    label {
+      display: block;
+      color: #659096;
+      font-size: 11px;
+      margin: 15px 0 6px;
+      letter-spacing: 1px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #18515a;
+      background: #020608;
+      color: #d8ffff;
+      padding: 13px;
+      outline: none;
+      font: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #00ffff;
+      box-shadow: 0 0 12px rgba(0,255,255,.08);
+    }
+
+    textarea {
+      min-height: 420px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .notice {
+      border-left: 3px solid #00ffff;
+      padding: 12px 15px;
+      margin: 18px 0;
+      background: #061317;
+      color: #83aeb2;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .preview-box {
+      display: none;
+      min-height: 420px;
+      border: 1px solid #18515a;
+      background: #020608;
+      padding: 18px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .preview-box.show {
+      display: block;
+    }
+
+    .preview-box h1,
+    .preview-box h2,
+    .preview-box h3 {
+      color: #00ffff;
+    }
+
+    .draft-status {
+      color: #65cbd2;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .menu {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+      }
+
+      .menu button {
+        margin: 0;
+        font-size: 11px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .logo {
+        font-size: 16px;
+      }
+
+      .status {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="logo">NEXUS // ADMIN</div>
+    <div class="status">CONTROL SYSTEM // ONLINE</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="grid">
+
+    <aside class="sidebar">
+      <div class="menu-title">CONTROL</div>
+
+      <div class="menu">
+        <button id="dashboardBtn" class="active">
+          📊 仪表盘
+        </button>
+
+        <button id="articlesBtn">
+          📝 文章
+        </button>
+
+        <button id="newBtn">
+          ＋ 新建
+        </button>
+      </div>
+    </aside>
+
+    <section class="main">
+
+      <div id="dashboard" class="panel">
+        <h1>SYSTEM DASHBOARD</h1>
+        <div class="sub">NEXUS ARCHIVE CONTROL CENTER</div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-number">{posts.length}</div>
+            <div class="stat-label">ARCHIVE RECORDS</div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-number">ONLINE</div>
+            <div class="stat-label">SYSTEM STATUS</div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-number">ASTRO</div>
+            <div class="stat-label">ENGINE</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="articles" class="panel" style="display:none">
+        <h1>ARTICLE DATABASE</h1>
+        <div class="sub">MANAGE ARCHIVE RECORDS</div>
+
+        {posts.map((post) => (
+          <div class="post">
+            <div class="post-title">
+              {post.data.title}
+            </div>
+
+            <div class="post-meta">
+              {post.data.pubDate.toLocaleDateString('zh-CN')}
+            </div>
+
+            <div>
+              {post.data.tags.map((tag) => (
+                <span class="tag">#{tag}</span>
+              ))}
+            </div>
+
+            <div class="actions">
+
+              <button
+                class="action"
+                onclick={`loadArticle(${JSON.stringify(post.id)})`}
+              >
+                ✏️ 编辑
+              </button>
+
+              <a
+                class="action"
+                style="text-decoration:none"
+                href={`${import.meta.env.BASE_URL}posts/${post.id}/`}
+              >
+                👁 查看
+              </a>
+
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div id="editor" class="panel editor">
+
+        <h1 id="editorTitle">NEW ARCHIVE RECORD</h1>
+
+        <div class="sub">
+          MARKDOWN ARTICLE EDITOR
+        </div>
+
+        <div class="notice">
+          当前为本地编辑模式。草稿会保存到当前浏览器。
+          下一阶段接入 GitHub API 后，可以直接从这里发布文章。
+        </div>
+
+        <label>TITLE</label>
+        <input id="title" placeholder="文章标题">
+
+        <label>DESCRIPTION</label>
+        <input id="description" placeholder="文章简介">
+
+        <label>TAGS</label>
+        <input id="tags" placeholder="NEXUS,SYSTEM,TECH">
+
+        <label>CONTENT / MARKDOWN</label>
+
+        <div class="tabs">
+          <button id="editBtn" class="preview active">
+            ✏️ 编辑
+          </button>
+
+          <button id="previewBtn" class="preview">
+            👁 预览
+          </button>
+        </div>
+
+        <textarea
+          id="content"
+          placeholder="# 文章标题
+
+Markdown 内容……
+
+## 小标题
+
+#
+",
+        ></textarea>
+
+        <div id="previewBox" class="preview-box"></div>
+
+        <div class="editor-actions">
+
+          <button id="saveBtn" class="publish">
+            💾 保存草稿
+          </button>
+
+          <button id="loadBtn" class="action">
+            📂 读取草稿
+          </button>
+
+          <button id="clearBtn" class="action">
+            🗑 清空
+          </button>
+
+          <button id="backBtn" class="action">
+            ← 返回文章
+          </button>
+
+        </div>
+
+        <div id="draftStatus" class="draft-status"></div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+<script>
+  function showPanel(name, button) {
+    document.querySelectorAll('.main > .panel').forEach(p => {
+      p.style.display = 'none';
+    });
+
+    const target = document.getElementById(name);
+
+    if (target) {
+      target.style.display = 'block';
+    }
+
+    document.querySelectorAll('.menu button').forEach(b => {
+      b.classList.remove('active');
+    });
+
+    if (button) {
+      button.classList.add('active');
+    }
+  }
+
+  function newArticle() {
+    document.getElementById('editorTitle').textContent =
+      'NEW ARCHIVE RECORD';
+
+    document.getElementById('title').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('tags').value = '';
+    document.getElementById('content').value = '';
+
+    document.getElementById('draftStatus').textContent =
+      'NEW RECORD // READY';
+
+    showEditor();
+  }
+
+  function saveDraft() {
+    const draft = {
+      title: document.getElementById('title').value,
+      description: document.getElementById('description').value,
+      tags: document.getElementById('tags').value,
+      content: document.getElementById('content').value
+    };
+
+    localStorage.setItem(
+      'nexus-draft',
+      JSON.stringify(draft)
+    );
+
+    document.getElementById('draftStatus').textContent =
+      '✓ DRAFT SAVED // LOCAL STORAGE';
+
+    alert('草稿已保存');
+  }
+
+  function loadDraft() {
+    const raw = localStorage.getItem('nexus-draft');
+
+    if (!raw) {
+      alert('没有找到本地草稿');
+      return;
+    }
+
+    const draft = JSON.parse(raw);
+
+    document.getElementById('title').value =
+      draft.title || '';
+
+    document.getElementById('description').value =
+      draft.description || '';
+
+    document.getElementById('tags').value =
+      draft.tags || '';
+
+    document.getElementById('content').value =
+      draft.content || '';
+
+    document.getElementById('draftStatus').textContent =
+      '✓ DRAFT LOADED';
+
+    showEditor();
+  }
+
+  function clearEditor() {
+    if (confirm('确定清空当前编辑内容？')) {
+      newArticle();
+    }
+  }
+
+  function showEditor() {
+    document.getElementById('content').style.display = 'block';
+    document.getElementById('previewBox').classList.remove('show');
+
+    document.getElementById('editBtn').classList.add('active');
+    document.getElementById('previewBtn').classList.remove('active');
+  }
+
+  function showPreview() {
+    const content =
+      document.getElementById('content').value;
+
+    const preview =
+      document.getElementById('previewBox');
+
+    preview.textContent = content || '暂无内容';
+
+    document.getElementById('content').style.display = 'none';
+    preview.classList.add('show');
+
+    document.getElementById('previewBtn').classList.add('active');
+    document.getElementById('editBtn').classList.remove('active');
+  }
+
+  document.getElementById('dashboardBtn').addEventListener('click', function() {
+    showPanel('dashboard', this);
+  });
+
+  document.getElementById('articlesBtn').addEventListener('click', function() {
+    showPanel('articles', this);
+  });
+
+  document.getElementById('newBtn').addEventListener('click', function() {
+    showPanel('editor', this);
+    newArticle();
+  });
+
+  document.getElementById('editBtn').addEventListener('click', showEditor);
+  document.getElementById('previewBtn').addEventListener('click', showPreview);
+
+  document.getElementById('saveBtn').addEventListener('click', saveDraft);
+  document.getElementById('loadBtn').addEventListener('click', loadDraft);
+  document.getElementById('clearBtn').addEventListener('click', clearEditor);
+
+  document.getElementById('backBtn').addEventListener('click', function() {
+    showPanel('articles', document.getElementById('articlesBtn'));
+  });
+
+  document.querySelectorAll('[data-edit-id]').forEach(button => {
+    button.addEventListener('click', function() {
+      loadArticle(this.dataset.editId);
+    });
+  });
+
+  function loadArticle(id) {
+    alert(
+      'ARTICLE: ' + id +
+      '\\n\\n真正的 GitHub 编辑功能将在下一阶段接入。'
+    );
+  }
+</script>
+
+</body>
+</html>
