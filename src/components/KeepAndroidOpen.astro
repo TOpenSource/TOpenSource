@@ -1,1 +1,62 @@
-<script src="https://keepandroidopen.org/banner.js?lang=zh-CN&size=mini"></script>
+<div class="nexus-mascot" aria-label="NEXUS">
+  <span class="mascot">👾</span>
+</div>
+
+<style>
+  .nexus-mascot {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0 4px;
+    pointer-events: none;
+  }
+
+  .mascot {
+    display: inline-block;
+    font-size: 28px;
+    line-height: 1;
+    filter:
+      drop-shadow(0 0 4px rgba(79, 252, 255, 0.7))
+      drop-shadow(0 0 10px rgba(79, 252, 255, 0.35));
+    animation:
+      nexus-float 2.8s ease-in-out infinite,
+      nexus-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes nexus-float {
+    0%, 100% {
+      transform: translateY(0) rotate(-2deg);
+    }
+
+    50% {
+      transform: translateY(-5px) rotate(2deg);
+    }
+  }
+
+  @keyframes nexus-glow {
+    0%, 100% {
+      opacity: 0.82;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .nexus-mascot {
+      padding: 8px 0 2px;
+    }
+
+    .mascot {
+      font-size: 24px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mascot {
+      animation: none;
+    }
+  }
+</style>
