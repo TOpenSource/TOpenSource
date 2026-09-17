@@ -260,11 +260,27 @@ const posts = await getCollection('posts');
 
       posts.sort((a, b) => {
         if (mode === 'newest') {
-          return new Date(b.dataset.date) - new Date(a.dataset.date);
+          const dateDiff =
+            new Date(b.dataset.date) - new Date(a.dataset.date);
+
+          if (dateDiff !== 0) return dateDiff;
+
+          return b.dataset.title.localeCompare(
+            a.dataset.title,
+            'zh-CN'
+          );
         }
 
         if (mode === 'oldest') {
-          return new Date(a.dataset.date) - new Date(b.dataset.date);
+          const dateDiff =
+            new Date(a.dataset.date) - new Date(b.dataset.date);
+
+          if (dateDiff !== 0) return dateDiff;
+
+          return a.dataset.title.localeCompare(
+            b.dataset.title,
+            'zh-CN'
+          );
         }
 
         if (mode === 'az') {
