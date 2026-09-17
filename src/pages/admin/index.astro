@@ -939,10 +939,14 @@ function newArticle() {
  */
 
 function loadArticle(slug) {
+  const targetSlug =
+    decodeURIComponent(slug).replace(/\.md$/i, '');
 
   const article =
-    ARTICLES.find(
-      item => item.slug === slug
+    ARTICLES.find(item =>
+      item.slug === targetSlug ||
+      item.id === targetSlug ||
+      item.id.replace(/\.md$/i, '') === targetSlug
     );
 
   if (!article) {
