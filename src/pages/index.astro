@@ -1,8 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('posts'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const posts = await getCollection('posts');
 ---
 
 <!doctype html>
@@ -83,6 +82,25 @@ const posts = (await getCollection('posts'))
       background: #003337;
       color: #00ffff;
       font: inherit;
+      cursor: pointer;
+    }
+
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 18px;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .sort-bar select {
+      padding: 7px 10px;
+      border: 1px solid currentColor;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      letter-spacing: 1px;
       cursor: pointer;
     }
 
@@ -185,6 +203,16 @@ const posts = (await getCollection('posts'))
       ARCHIVE RECORDS: {posts.length}
     </div>
 
+    <div class="sort-bar">
+      <label for="postSort">SORT:</label>
+      <select id="postSort">
+        <option value="newest">NEWEST / 最新发布</option>
+        <option value="oldest">OLDEST / 最早发布</option>
+        <option value="az">TITLE A-Z</option>
+        <option value="za">TITLE Z-A</option>
+      </select>
+    </div>
+
 
     <section id="posts">
       {posts.length === 0 ? (
@@ -195,6 +223,8 @@ const posts = (await getCollection('posts'))
             class="post"
             href={`/posts/${post.id}/`}
             data-search={`${post.data.title} ${post.data.description ?? ''} ${post.data.tags.join(' ')}`}
+            data-date={post.data.pubDate.toISOString()}
+            data-title={post.data.title}
           >
             <div class="date">
               {post.data.pubDate.toLocaleDateString('zh-CN')}
@@ -220,8 +250,42 @@ const posts = (await getCollection('posts'))
 
   <script>
     const input = document.querySelector('#search');
+    const postsContainer = document.querySelector('#posts');
     const posts = [...document.querySelectorAll('.post')];
     const count = document.querySelector('#count');
+    const sortSelect = document.querySelector('#postSort');
+
+    function sortPosts() {
+      const mode = sortSelect.value;
+
+      posts.sort((a, b) => {
+        if (mode === 'newest') {
+          return new Date(b.dataset.date) - new Date(a.dataset.date);
+        }
+
+        if (mode === 'oldest') {
+          return new Date(a.dataset.date) - new Date(b.dataset.date);
+        }
+
+        if (mode === 'az') {
+          return a.dataset.title.localeCompare(
+            b.dataset.title,
+            'zh-CN'
+          );
+        }
+
+        if (mode === 'za') {
+          return b.dataset.title.localeCompare(
+            a.dataset.title,
+            'zh-CN'
+          );
+        }
+
+        return 0;
+      });
+
+      posts.forEach(post => postsContainer.appendChild(post));
+    }
 
     function search() {
       const keyword = input.value.toLowerCase().trim();
@@ -239,8 +303,16 @@ const posts = (await getCollection('posts'))
       count.textContent = `ARCHIVE RECORDS: ${visible}`;
     }
 
+    sortSelect.addEventListener('change', () => {
+      sortPosts();
+      search();
+    });
+
     input.addEventListener('input', search);
     document.querySelector('#scan').addEventListener('click', search);
+
+    // 默认：最新文章在最上面
+    sortPosts();
   </script>
 </body>
 </html>
