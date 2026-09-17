@@ -239,6 +239,7 @@ nano generate.py Markdown……"></textarea>
   </main>
 
 <script>
+import { pinyin } from 'pinyin-pro';
 const KEY = 'nexus-admin-draft';
 
 const filename = document.getElementById('filename');
@@ -254,32 +255,16 @@ function setStatus(text) {
 }
 
 function slugify(value) {
-  const map = {
-    '我':'wo','的':'de','第':'di','一':'yi','篇':'pian','文':'wen','章':'zhang',
-    '测':'ce','试':'shi','自':'zi','动':'dong','发':'fa','布':'bu',
-    '技':'ji','术':'shu','教':'jiao','程':'cheng','分':'fen','享':'xiang',
-    '新':'xin','建':'jian','使':'shi','用':'yong','介':'jie','绍':'shao',
-    '系':'xi','统':'tong','配':'pei','置':'zhi','网':'wang','络':'luo',
-    '服':'fu','务':'wu','器':'qi','安':'an','全':'quan','博':'bo','客':'ke',
-    '你':'ni','好':'hao','这':'zhe','是':'shi','一':'yi','个':'ge',
-    '中':'zhong','国':'guo','英':'ying','语':'yu','数':'shu','据':'ju',
-    '库':'ku','软':'ruan','件':'jian','开':'kai','源':'yuan'
-  };
+  const converted = pinyin(value, {
+    toneType: 'none',
+    type: 'string',
+    nonZh: 'consecutive'
+  });
 
-  let result = '';
-
-  for (const char of value.toLowerCase()) {
-    if (map[char]) {
-      result += map[char] + '-';
-    } else if (/[a-z0-9]/.test(char)) {
-      result += char;
-    } else {
-      result += '-';
-    }
-  }
-
-  return result
-    .replace(/-+/g, '-')
+  return converted
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
 

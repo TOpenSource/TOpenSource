@@ -14,7 +14,8 @@
   "dependencies": {
     "@astrojs/mdx": "^8.0.1",
     "@octokit/rest": "^22.0.1",
-    "astro": "^7.3.3"
+    "astro": "^7.3.3",
+    "pinyin-pro": "^3.29.4"
   },
   "allowScripts": {
     "esbuild": true
