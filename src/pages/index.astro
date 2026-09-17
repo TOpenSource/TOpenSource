@@ -441,69 +441,42 @@ const posts = await getCollection('posts');
 
 
 <script>
-async function loadCommentCounts() {
+function loadCommentCounts() {
 
   const items =
-    document.querySelectorAll('.comment-count');
+    document.querySelectorAll(
+      ".comment-count"
+    );
 
-  for (const item of items) {
+  const cache =
+    JSON.parse(
+      localStorage.getItem(
+        "nexus-comments"
+      ) || "{}"
+    );
 
-    const pathname =
+  items.forEach(item => {
+
+    const path =
       item.dataset.path;
 
-    try {
+    const data =
+      cache[path];
 
-      const res =
-        await fetch(
-          "https://api.github.com/graphql",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              query: `
-              query {
-                repository(
-                  owner:"TOpenSource",
-                  name:"TOpenSource.github.io"
-                ) {
-                  discussions(first:100) {
-                    nodes {
-                      title
-                      comments {
-                        totalCount
-                      }
-                    }
-                  }
-                }
-              }`
-            })
-          }
-        );
-
-      const json = await res.json();
-
-      const list =
-        json.data.repository.discussions.nodes;
-
-      const found =
-        list.find(
-          d => d.title.includes(pathname)
-        );
+    if (data) {
 
       item.textContent =
-        found
-        ? "💬 " + found.comments.totalCount + " COMMENTS"
-        : "💬 0 COMMENTS";
+        `💬 ${data.comments} COMMENTS`;
 
-    } catch(e) {
+    } else {
 
       item.textContent =
-        "💬 COMMENTS";
+        "💬 0 COMMENTS";
 
     }
-  }
+
+  });
+
 }
 
 loadCommentCounts();
