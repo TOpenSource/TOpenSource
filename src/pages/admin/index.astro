@@ -184,6 +184,7 @@ const base = import.meta.env.BASE_URL;
         <button id="previewBtn">👁 PREVIEW</button>
         <button id="editBtn">✎ EDIT</button>
         <button id="exportBtn">⬇ EXPORT MARKDOWN</button>
+        <button id="publishBtn">🚀 PUBLISH TO GITHUB</button>
         <button id="clearBtn" class="danger">CLEAR</button>
       </div>
 
@@ -364,6 +365,59 @@ function makeMarkdown() {
   return output;
 }
 
+
+function publishToGitHub() {
+  const data = collect();
+
+  if (!data.title) {
+    setStatus('ERROR: TITLE REQUIRED');
+    return;
+  }
+
+  if (!data.content.trim()) {
+    setStatus('ERROR: CONTENT REQUIRED');
+    return;
+  }
+
+  let name = data.filename.trim();
+
+  if (!name) {
+    name = slugify(data.title);
+  }
+
+  if (!name) {
+    setStatus('ERROR: INVALID FILENAME');
+    return;
+  }
+
+  name = name.replace(/\.md$/i, '');
+
+  const body =
+`<!-- NEXUS_PUBLISH_START -->
+NEXUS_FILENAME=${name}
+NEXUS_TITLE=${data.title.replace(/\n/g, ' ')}
+NEXUS_DESCRIPTION=${data.description.replace(/\n/g, ' ')}
+NEXUS_TAGS=${data.tags.replace(/\n/g, ' ')}
+<!-- NEXUS_PUBLISH_END -->
+
+<!-- NEXUS_CONTENT_START -->
+${data.content}
+<!-- NEXUS_CONTENT_END -->`;
+
+  const params = new URLSearchParams();
+
+  params.set('title', '[NEXUS PUBLISH] ' + data.title);
+  params.set('body', body);
+
+  const url =
+    'https://github.com/TOpenSource/TOpenSource/issues/new?' +
+    params.toString();
+
+  setStatus('OPENING GITHUB PUBLISH TERMINAL...');
+
+  window.location.href = url;
+}
+
 function exportMarkdown() {
   let name = filename.value.trim();
 
@@ -413,6 +467,8 @@ document.getElementById('editBtn').addEventListener('click', () => {
 });
 
 document.getElementById('exportBtn').addEventListener('click', exportMarkdown);
+
+document.getElementById('publishBtn').addEventListener('click', publishToGitHub);
 
 document.getElementById('clearBtn').addEventListener('click', () => {
   if (confirm('确定清空当前文章？')) {

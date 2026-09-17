@@ -1,74 +1,116 @@
 name: NEXUS Publish Article
 
 on:
-  workflow_dispatch:
-    inputs:
-      filename:
-        description: "Markdown filename"
-        required: true
-        type: string
-      title:
-        description: "Article title"
-        required: true
-        type: string
-      description:
-        description: "Article description"
-        required: false
-        type: string
-      tags:
-        description: "Tags, separated by commas"
-        required: false
-        type: string
-      content:
-        description: "Markdown content"
-        required: true
-        type: string
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   publish:
+    if: github.event.issue.user.login == 'TOpenSource' && startsWith(github.event.issue.title, '[NEXUS PUBLISH]')
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Create article
+      - name: Parse article
         env:
-          ARTICLE_FILENAME: ${{ inputs.filename }}
-          ARTICLE_TITLE: ${{ inputs.title }}
-          ARTICLE_DESCRIPTION: ${{ inputs.description }}
-          ARTICLE_TAGS: ${{ inputs.tags }}
-          ARTICLE_CONTENT: ${{ inputs.content }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          set -e
+          python3 <<'PY'
+          import os
+          import re
+          from pathlib import Path
 
-          mkdir -p src/content/posts
+          body = os.environ.get("ISSUE_BODY", "")
 
-          FILE="src/content/posts/${ARTICLE_FILENAME}.md"
+          match = re.search(
+              r'<!-- NEXUS_PUBLISH_START -->(.*?)<!-- NEXUS_PUBLISH_END -->',
+              body,
+              re.S
+          )
 
-          {
-            echo "---"
-            echo "title: \"${ARTICLE_TITLE//\"/\\\"}\""
-            echo "description: \"${ARTICLE_DESCRIPTION//\"/\\\"}\""
-            echo "pubDate: $(date -u +%Y-%m-%d)"
-            echo "tags:"
-            
-            IFS=',' read -ra TAG_ARRAY <<< "$ARTICLE_TAGS"
+          if not match:
+              raise SystemExit("Invalid NEXUS publish payload")
 
-            for tag in "${TAG_ARRAY[@]}"; do
-              tag="$(echo "$tag" | xargs)"
-              [ -n "$tag" ] && echo "  - \"$tag\""
-            done
+          meta = match.group(1).strip()
 
-            echo "---"
-            echo
-            printf '%s\n' "$ARTICLE_CONTENT"
-          } > "$FILE"
+          def get_value(name):
+              m = re.search(
+                  rf'^NEXUS_{name}=(.*)$',
+                  meta,
+                  re.MULTILINE
+              )
+              return m.group(1).strip() if m else ""
 
-          echo "Created: $FILE"
+          filename = get_value("FILENAME")
+          title = get_value("TITLE")
+          description = get_value("DESCRIPTION")
+          tags = get_value("TAGS")
+          content_match = re.search(
+              r'<!-- NEXUS_CONTENT_START -->(.*?)<!-- NEXUS_CONTENT_END -->',
+              body,
+              re.S
+          )
+
+          if not filename:
+              raise SystemExit("Missing filename")
+
+          if not title:
+              raise SystemExit("Missing title")
+
+          if not content_match:
+              raise SystemExit("Missing content")
+
+          content = content_match.group(1).strip()
+
+          filename = re.sub(r'[^a-zA-Z0-9_-]', '-', filename)
+          filename = re.sub(r'-+', '-', filename).strip('-')
+
+          if not filename:
+              raise SystemExit("Invalid filename")
+
+          if not filename.endswith(".md"):
+              filename += ".md"
+
+          description = description.replace('"', '\\"')
+          title = title.replace('"', '\\"')
+
+          tag_list = [
+              x.strip()
+              for x in tags.split(',')
+              if x.strip()
+          ]
+
+          output = [
+              "---",
+              f'title: "{title}"',
+              f'description: "{description}"',
+              f'pubDate: {__import__("datetime").datetime.utcnow().strftime("%Y-%m-%d")}',
+              "tags:"
+          ]
+
+          for tag in tag_list:
+              tag = tag.replace('"', '\\"')
+              output.append(f'  - "{tag}"')
+
+          output.extend([
+              "---",
+              "",
+              content,
+              ""
+          ])
+
+          path = Path("src/content/posts") / filename
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text("\n".join(output), encoding="utf-8")
+
+          print(f"Created: {path}")
+          PY
 
       - name: Commit article
         run: |
@@ -77,9 +119,18 @@ jobs:
 
           git add src/content/posts/
 
-          git commit -m "Publish article: ${{ inputs.title }}" || {
+          git commit -m "Publish article from NEXUS Admin" || {
             echo "Nothing to commit"
             exit 0
           }
 
           git push
+
+      - name: Close issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue close "$ISSUE_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --comment "NEXUS article published successfully. GitHub Pages deployment has been triggered."
