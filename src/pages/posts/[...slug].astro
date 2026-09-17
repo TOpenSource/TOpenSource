@@ -166,8 +166,10 @@ const { Content } = await render(post);
       document.getElementById('editArticle');
 
     editButton.addEventListener('click', () => {
-      window.location.href =
-        `/admin/?edit=${encodeURIComponent(filename)}`;
+      const editUrl =
+        `https://github.com/TOpenSource/TOpenSource.github.io/edit/main/src/content/posts/${encodeURIComponent(filename)}`;
+
+      window.location.href = editUrl;
     });
 
     const deleteButton =
