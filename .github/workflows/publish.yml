@@ -178,6 +178,7 @@ jobs:
               tags = get_value(meta, "TAGS")
               category = get_value(meta, "CATEGORY") or "未分类"
 
+              nexus_pubdate = get_value(meta, "PUBDATE")
               if not article_title:
                   raise SystemExit("Missing title")
 
@@ -240,10 +241,12 @@ jobs:
                       old_path.unlink()
 
               else:
-
-                  pub_date = datetime.now(
-                      timezone.utc
-                  ).strftime("%Y-%m-%d")
+                  if nexus_pubdate:
+                      pub_date = nexus_pubdate
+                  else:
+                      pub_date = datetime.now(
+                          timezone.utc
+                      ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
                   if target.exists():
                       raise SystemExit(
