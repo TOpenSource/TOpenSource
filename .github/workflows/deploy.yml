@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+
+  workflow_run:
+    workflows:
+      - NEXUS Article Manager
+    types:
+      - completed
+
   workflow_dispatch:
 
 permissions:
@@ -17,11 +24,17 @@ concurrency:
 
 jobs:
   build:
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: main
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -41,11 +54,8 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
 
-    permissions:
-      pages: write
-      id-token: write
+    runs-on: ubuntu-latest
 
     environment:
       name: github-pages
