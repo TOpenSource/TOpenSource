@@ -1,8 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
-
-const posts = (await getCollection('posts'))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const base = import.meta.env.BASE_URL;
 ---
 
 <!doctype html>
@@ -13,275 +10,147 @@ const posts = (await getCollection('posts'))
   <title>NEXUS // ADMIN</title>
 
   <style>
-    * {
+    :global(*) {
       box-sizing: border-box;
     }
 
-    body {
+    :global(body) {
       margin: 0;
       min-height: 100vh;
       background:
-        linear-gradient(rgba(0,255,255,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,255,.025) 1px, transparent 1px),
-        #040608;
-      background-size: 30px 30px;
-      color: #d8ffff;
-      font-family: monospace;
+        linear-gradient(rgba(0,255,200,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,200,.035) 1px, transparent 1px),
+        #05080b;
+      background-size: 32px 32px;
+      color: #d8fff5;
+      font-family: Arial, sans-serif;
     }
 
-    .top {
-      border-bottom: 1px solid #164c54;
-      background: rgba(0,15,20,.95);
-      padding: 16px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .top-inner {
-      width: min(1100px, 94%);
+    .wrap {
+      width: min(1100px, calc(100% - 28px));
       margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
+      padding: 28px 0 60px;
+    }
+
+    header {
+      border: 1px solid #17463f;
+      background: rgba(4,15,17,.88);
+      padding: 22px;
+      margin-bottom: 18px;
     }
 
     .logo {
-      color: #00ffff;
-      font-size: 20px;
-      letter-spacing: 3px;
-      text-shadow: 0 0 12px rgba(0,255,255,.4);
-    }
-
-    .status {
-      color: #50aeb5;
-      font-size: 11px;
-    }
-
-    .container {
-      width: min(1100px, 94%);
-      margin: auto;
-      padding: 25px 0 60px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 20px;
-    }
-
-    .sidebar,
-    .panel {
-      border: 1px solid #16444c;
-      background: rgba(0,12,16,.85);
-    }
-
-    .sidebar {
-      padding: 15px;
-      height: fit-content;
-    }
-
-    .menu-title {
-      color: #527c82;
-      font-size: 11px;
-      margin: 8px 10px 12px;
-      letter-spacing: 2px;
-    }
-
-    .menu button {
-      width: 100%;
-      text-align: left;
-      padding: 13px;
-      margin-bottom: 6px;
-      border: 1px solid transparent;
-      background: transparent;
-      color: #8db4b8;
-      font: inherit;
-      cursor: pointer;
-    }
-
-    .menu button:hover,
-    .menu button.active {
-      color: #00ffff;
-      border-color: #15535c;
-      background: #06191d;
-    }
-
-    .panel {
-      padding: 22px;
-      margin-bottom: 20px;
-    }
-
-    .panel h1 {
-      margin: 0 0 6px;
-      color: #00ffff;
-      font-size: 24px;
-      letter-spacing: 2px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 5px;
+      color: #64ffe0;
     }
 
     .sub {
-      color: #62858a;
+      margin-top: 8px;
+      color: #6d9d94;
       font-size: 12px;
+      letter-spacing: 2px;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .stat {
-      border: 1px solid #16444c;
+    .panel {
+      border: 1px solid #17463f;
+      background: rgba(4,15,17,.92);
       padding: 18px;
-      background: #050d10;
+      margin-bottom: 18px;
     }
 
-    .stat-number {
-      color: #00ffff;
-      font-size: 28px;
-    }
-
-    .stat-label {
-      color: #64898e;
-      font-size: 11px;
-      margin-top: 6px;
-    }
-
-    .post {
-      border: 1px solid #16444c;
-      padding: 18px;
-      margin-top: 12px;
-      background: #050d10;
-    }
-
-    .post-title {
-      color: #00ffff;
-      font-size: 17px;
-      margin-bottom: 8px;
-    }
-
-    .post-meta {
-      color: #527d82;
-      font-size: 11px;
-    }
-
-    .tag {
-      display: inline-block;
-      margin: 10px 6px 0 0;
-      padding: 3px 7px;
-      border: 1px solid #20555d;
-      color: #65cbd2;
-      font-size: 10px;
-    }
-
-    .actions,
-    .editor-actions,
-    .tabs {
+    .toolbar {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
+      margin-bottom: 16px;
     }
 
-    .actions {
-      margin-top: 14px;
-    }
-
-    button.action,
-    button.publish,
-    button.preview {
-      padding: 10px 14px;
-      border: 1px solid #17616b;
-      background: #062025;
-      color: #00ffff;
-      font: inherit;
+    button {
+      border: 1px solid #1d7566;
+      background: #081b1b;
+      color: #73ffe2;
+      padding: 10px 16px;
       cursor: pointer;
-    }
-
-    button.publish {
-      border-color: #00ffff;
-      background: #00363b;
-    }
-
-    button.preview.active {
-      background: #07505a;
+      font-weight: 700;
     }
 
     button:hover {
-      background: #07505a;
+      background: #0d302d;
     }
 
-    .editor {
-      display: none;
+    .danger {
+      border-color: #784242;
+      color: #ff8c8c;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #17463f;
+      background: #020607;
+      color: #d8fff5;
+      padding: 12px;
+      outline: none;
+      margin-top: 7px;
+      font: inherit;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #40cdb4;
+    }
+
+    textarea {
+      min-height: 360px;
+      resize: vertical;
+      font-family: monospace;
+      line-height: 1.6;
     }
 
     label {
       display: block;
-      color: #659096;
-      font-size: 11px;
-      margin: 15px 0 6px;
-      letter-spacing: 1px;
+      margin-bottom: 15px;
+      color: #73b9aa;
+      font-size: 13px;
     }
 
-    input,
-    textarea {
-      width: 100%;
-      border: 1px solid #18515a;
-      background: #020608;
-      color: #d8ffff;
-      padding: 13px;
-      outline: none;
-      font: inherit;
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
     }
 
-    input:focus,
-    textarea:focus {
-      border-color: #00ffff;
-      box-shadow: 0 0 12px rgba(0,255,255,.08);
+    .preview {
+      border: 1px dashed #17463f;
+      padding: 18px;
+      min-height: 360px;
+      overflow-wrap: anywhere;
     }
 
-    textarea {
-      min-height: 420px;
-      resize: vertical;
-      line-height: 1.6;
+    .preview h1,
+    .preview h2,
+    .preview h3 {
+      color: #64ffe0;
     }
 
-    .notice {
-      border-left: 3px solid #00ffff;
-      padding: 12px 15px;
-      margin: 18px 0;
-      background: #061317;
-      color: #83aeb2;
+    .status {
+      border-left: 3px solid #39d4b4;
+      background: #071412;
+      padding: 12px;
+      margin-top: 15px;
+      color: #8cebd9;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .hint {
+      color: #61847e;
       font-size: 12px;
       line-height: 1.7;
     }
 
-    .preview-box {
+    .hidden {
       display: none;
-      min-height: 420px;
-      border: 1px solid #18515a;
-      background: #020608;
-      padding: 18px;
-      line-height: 1.8;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .preview-box.show {
-      display: block;
-    }
-
-    .preview-box h1,
-    .preview-box h2,
-    .preview-box h3 {
-      color: #00ffff;
-    }
-
-    .draft-status {
-      color: #65cbd2;
-      font-size: 11px;
-      margin-top: 10px;
     }
 
     @media (max-width: 700px) {
@@ -289,366 +158,280 @@ const posts = (await getCollection('posts'))
         grid-template-columns: 1fr;
       }
 
-      .menu {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 5px;
-      }
-
-      .menu button {
-        margin: 0;
-        font-size: 11px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 430px) {
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .panel {
-        padding: 16px;
-      }
-
       .logo {
-        font-size: 16px;
+        font-size: 22px;
       }
 
-      .status {
-        display: none;
+      textarea {
+        min-height: 300px;
       }
     }
   </style>
 </head>
 
 <body>
+  <main class="wrap">
 
-<header class="top">
-  <div class="top-inner">
-    <div class="logo">NEXUS // ADMIN</div>
-    <div class="status">CONTROL SYSTEM // ONLINE</div>
-  </div>
-</header>
+    <header>
+      <div class="logo">NEXUS // ADMIN</div>
+      <div class="sub">PERSONAL KNOWLEDGE ARCHIVE · CONTROL TERMINAL</div>
+    </header>
 
-<main class="container">
-
-  <div class="grid">
-
-    <aside class="sidebar">
-      <div class="menu-title">CONTROL</div>
-
-      <div class="menu">
-        <button id="dashboardBtn" class="active">
-          📊 仪表盘
-        </button>
-
-        <button id="articlesBtn">
-          📝 文章
-        </button>
-
-        <button id="newBtn">
-          ＋ 新建
-        </button>
-      </div>
-    </aside>
-
-    <section class="main">
-
-      <div id="dashboard" class="panel">
-        <h1>SYSTEM DASHBOARD</h1>
-        <div class="sub">NEXUS ARCHIVE CONTROL CENTER</div>
-
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-number">{posts.length}</div>
-            <div class="stat-label">ARCHIVE RECORDS</div>
-          </div>
-
-          <div class="stat">
-            <div class="stat-number">ONLINE</div>
-            <div class="stat-label">SYSTEM STATUS</div>
-          </div>
-
-          <div class="stat">
-            <div class="stat-number">ASTRO</div>
-            <div class="stat-label">ENGINE</div>
-          </div>
-        </div>
+    <section class="panel">
+      <div class="toolbar">
+        <button id="newBtn">＋ NEW ARTICLE</button>
+        <button id="saveBtn">💾 SAVE DRAFT</button>
+        <button id="previewBtn">👁 PREVIEW</button>
+        <button id="editBtn">✎ EDIT</button>
+        <button id="exportBtn">⬇ EXPORT MARKDOWN</button>
+        <button id="clearBtn" class="danger">CLEAR</button>
       </div>
 
-      <div id="articles" class="panel" style="display:none">
-        <h1>ARTICLE DATABASE</h1>
-        <div class="sub">MANAGE ARCHIVE RECORDS</div>
-
-        {posts.map((post) => (
-          <div class="post">
-            <div class="post-title">
-              {post.data.title}
-            </div>
-
-            <div class="post-meta">
-              {post.data.pubDate.toLocaleDateString('zh-CN')}
-            </div>
-
-            <div>
-              {post.data.tags.map((tag) => (
-                <span class="tag">#{tag}</span>
-              ))}
-            </div>
-
-            <div class="actions">
-
-              <button
-                class="action"
-                onclick={`loadArticle(${JSON.stringify(post.id)})`}
-              >
-                ✏️ 编辑
-              </button>
-
-              <a
-                class="action"
-                style="text-decoration:none"
-                href={`${import.meta.env.BASE_URL}posts/${post.id}/`}
-              >
-                👁 查看
-              </a>
-
-            </div>
-          </div>
-        ))}
+      <div class="hint">
+        编辑完成后点击「EXPORT MARKDOWN」可以直接生成文章文件。
+        真正写入 GitHub 的操作仍由 GitHub Actions 完成，不在浏览器中保存 Token。
       </div>
-
-      <div id="editor" class="panel editor">
-
-        <h1 id="editorTitle">NEW ARCHIVE RECORD</h1>
-
-        <div class="sub">
-          MARKDOWN ARTICLE EDITOR
-        </div>
-
-        <div class="notice">
-          当前为本地编辑模式。草稿会保存到当前浏览器。
-          下一阶段接入 GitHub API 后，可以直接从这里发布文章。
-        </div>
-
-        <label>TITLE</label>
-        <input id="title" placeholder="文章标题">
-
-        <label>DESCRIPTION</label>
-        <input id="description" placeholder="文章简介">
-
-        <label>TAGS</label>
-        <input id="tags" placeholder="NEXUS,SYSTEM,TECH">
-
-        <label>CONTENT / MARKDOWN</label>
-
-        <div class="tabs">
-          <button id="editBtn" class="preview active">
-            ✏️ 编辑
-          </button>
-
-          <button id="previewBtn" class="preview">
-            👁 预览
-          </button>
-        </div>
-
-        <textarea
-          id="content"
-          placeholder="# 文章标题
-
-Markdown 内容……
-
-## 小标题
-
-#
-",
-        ></textarea>
-
-        <div id="previewBox" class="preview-box"></div>
-
-        <div class="editor-actions">
-
-          <button id="saveBtn" class="publish">
-            💾 保存草稿
-          </button>
-
-          <button id="loadBtn" class="action">
-            📂 读取草稿
-          </button>
-
-          <button id="clearBtn" class="action">
-            🗑 清空
-          </button>
-
-          <button id="backBtn" class="action">
-            ← 返回文章
-          </button>
-
-        </div>
-
-        <div id="draftStatus" class="draft-status"></div>
-
-      </div>
-
     </section>
 
-  </div>
+    <section class="panel">
+      <div class="grid">
 
-</main>
+        <div>
+          <label>
+            文件名
+            <input id="filename" placeholder="my-first-article" />
+          </label>
+
+          <label>
+            标题
+            <input id="title" placeholder="文章标题" />
+          </label>
+
+          <label>
+            描述
+            <input id="description" placeholder="文章简介" />
+          </label>
+
+          <label>
+            标签
+            <input id="tags" placeholder="NEXUS, SYSTEM, NOTE" />
+          </label>
+
+          <label>
+            Markdown
+            <textarea id="content" placeholder="# 你的文章
+
+nano generate.py Markdown……"></textarea>
+          </label>
+        </div>
+
+        <div>
+          <div class="hint">LIVE PREVIEW</div>
+          <div id="preview" class="preview"></div>
+        </div>
+
+      </div>
+
+      <div id="status" class="status">SYSTEM READY</div>
+    </section>
+
+  </main>
 
 <script>
-  function showPanel(name, button) {
-    document.querySelectorAll('.main > .panel').forEach(p => {
-      p.style.display = 'none';
-    });
+const KEY = 'nexus-admin-draft';
 
-    const target = document.getElementById(name);
+const filename = document.getElementById('filename');
+const title = document.getElementById('title');
+const description = document.getElementById('description');
+const tags = document.getElementById('tags');
+const content = document.getElementById('content');
+const preview = document.getElementById('preview');
+const status = document.getElementById('status');
 
-    if (target) {
-      target.style.display = 'block';
-    }
+function setStatus(text) {
+  status.textContent = text;
+}
 
-    document.querySelectorAll('.menu button').forEach(b => {
-      b.classList.remove('active');
-    });
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
-    if (button) {
-      button.classList.add('active');
-    }
+function collect() {
+  return {
+    filename: filename.value.trim(),
+    title: title.value.trim(),
+    description: description.value.trim(),
+    tags: tags.value.trim(),
+    content: content.value
+  };
+}
+
+function saveDraft() {
+  localStorage.setItem(KEY, JSON.stringify(collect()));
+  setStatus('DRAFT SAVED');
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(KEY);
+
+  if (!raw) {
+    return;
   }
 
-  function newArticle() {
-    document.getElementById('editorTitle').textContent =
-      'NEW ARCHIVE RECORD';
+  try {
+    const data = JSON.parse(raw);
 
-    document.getElementById('title').value = '';
-    document.getElementById('description').value = '';
-    document.getElementById('tags').value = '';
-    document.getElementById('content').value = '';
+    filename.value = data.filename || '';
+    title.value = data.title || '';
+    description.value = data.description || '';
+    tags.value = data.tags || '';
+    content.value = data.content || '';
 
-    document.getElementById('draftStatus').textContent =
-      'NEW RECORD // READY';
+    updatePreview();
+    setStatus('DRAFT LOADED');
+  } catch {
+    setStatus('DRAFT LOAD ERROR');
+  }
+}
 
-    showEditor();
+function newArticle() {
+  filename.value = '';
+  title.value = '';
+  description.value = '';
+  tags.value = '';
+  content.value = '';
+
+  updatePreview();
+  setStatus('NEW ARTICLE READY');
+}
+
+function escapeHtml(str) {
+  return str
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function simpleMarkdown(md) {
+  let html = escapeHtml(md);
+
+  html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/^- (.*)$/gm, '<li>$1</li>');
+  html = html.replace(/\n\n/g, '<br><br>');
+  html = html.replace(/\n/g, '<br>');
+
+  return html;
+}
+
+function updatePreview() {
+  preview.innerHTML = simpleMarkdown(content.value || '暂无内容');
+}
+
+function makeMarkdown() {
+  const data = collect();
+
+  const safeTitle = data.title.replaceAll('"', '\\"');
+  const safeDescription = data.description.replaceAll('"', '\\"');
+
+  const tagList = data.tags
+    .split(',')
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  let output = '---\n';
+
+  output += `title: "${safeTitle}"\n`;
+  output += `description: "${safeDescription}"\n`;
+  output += `pubDate: ${new Date().toISOString().slice(0, 10)}\n`;
+  output += 'tags:\n';
+
+  for (const tag of tagList) {
+    output += `  - "${tag.replaceAll('"', '\\"')}"\n`;
   }
 
-  function saveDraft() {
-    const draft = {
-      title: document.getElementById('title').value,
-      description: document.getElementById('description').value,
-      tags: document.getElementById('tags').value,
-      content: document.getElementById('content').value
-    };
+  output += '---\n\n';
+  output += data.content;
 
-    localStorage.setItem(
-      'nexus-draft',
-      JSON.stringify(draft)
-    );
+  return output;
+}
 
-    document.getElementById('draftStatus').textContent =
-      '✓ DRAFT SAVED // LOCAL STORAGE';
+function exportMarkdown() {
+  let name = filename.value.trim();
 
-    alert('草稿已保存');
+  if (!name) {
+    name = slugify(title.value);
   }
 
-  function loadDraft() {
-    const raw = localStorage.getItem('nexus-draft');
-
-    if (!raw) {
-      alert('没有找到本地草稿');
-      return;
-    }
-
-    const draft = JSON.parse(raw);
-
-    document.getElementById('title').value =
-      draft.title || '';
-
-    document.getElementById('description').value =
-      draft.description || '';
-
-    document.getElementById('tags').value =
-      draft.tags || '';
-
-    document.getElementById('content').value =
-      draft.content || '';
-
-    document.getElementById('draftStatus').textContent =
-      '✓ DRAFT LOADED';
-
-    showEditor();
+  if (!name) {
+    setStatus('ERROR: PLEASE ENTER A TITLE');
+    return;
   }
 
-  function clearEditor() {
-    if (confirm('确定清空当前编辑内容？')) {
-      newArticle();
-    }
+  if (!name.endsWith('.md')) {
+    name += '.md';
   }
 
-  function showEditor() {
-    document.getElementById('content').style.display = 'block';
-    document.getElementById('previewBox').classList.remove('show');
+  const blob = new Blob(
+    [makeMarkdown()],
+    { type: 'text/markdown;charset=utf-8' }
+  );
 
-    document.getElementById('editBtn').classList.add('active');
-    document.getElementById('previewBtn').classList.remove('active');
-  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
 
-  function showPreview() {
-    const content =
-      document.getElementById('content').value;
+  a.href = url;
+  a.download = name;
+  a.click();
 
-    const preview =
-      document.getElementById('previewBox');
+  URL.revokeObjectURL(url);
 
-    preview.textContent = content || '暂无内容';
+  setStatus(`EXPORTED: ${name}`);
+}
 
-    document.getElementById('content').style.display = 'none';
-    preview.classList.add('show');
+document.getElementById('newBtn').addEventListener('click', newArticle);
 
-    document.getElementById('previewBtn').classList.add('active');
-    document.getElementById('editBtn').classList.remove('active');
-  }
+document.getElementById('saveBtn').addEventListener('click', saveDraft);
 
-  document.getElementById('dashboardBtn').addEventListener('click', function() {
-    showPanel('dashboard', this);
-  });
+document.getElementById('previewBtn').addEventListener('click', () => {
+  preview.classList.remove('hidden');
+  updatePreview();
+  setStatus('PREVIEW MODE');
+});
 
-  document.getElementById('articlesBtn').addEventListener('click', function() {
-    showPanel('articles', this);
-  });
+document.getElementById('editBtn').addEventListener('click', () => {
+  content.focus();
+  setStatus('EDIT MODE');
+});
 
-  document.getElementById('newBtn').addEventListener('click', function() {
-    showPanel('editor', this);
+document.getElementById('exportBtn').addEventListener('click', exportMarkdown);
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (confirm('确定清空当前文章？')) {
     newArticle();
-  });
-
-  document.getElementById('editBtn').addEventListener('click', showEditor);
-  document.getElementById('previewBtn').addEventListener('click', showPreview);
-
-  document.getElementById('saveBtn').addEventListener('click', saveDraft);
-  document.getElementById('loadBtn').addEventListener('click', loadDraft);
-  document.getElementById('clearBtn').addEventListener('click', clearEditor);
-
-  document.getElementById('backBtn').addEventListener('click', function() {
-    showPanel('articles', document.getElementById('articlesBtn'));
-  });
-
-  document.querySelectorAll('[data-edit-id]').forEach(button => {
-    button.addEventListener('click', function() {
-      loadArticle(this.dataset.editId);
-    });
-  });
-
-  function loadArticle(id) {
-    alert(
-      'ARTICLE: ' + id +
-      '\\n\\n真正的 GitHub 编辑功能将在下一阶段接入。'
-    );
+    localStorage.removeItem(KEY);
+    setStatus('EDITOR CLEARED');
   }
+});
+
+content.addEventListener('input', updatePreview);
+
+title.addEventListener('input', () => {
+  if (!filename.value.trim()) {
+    filename.value = slugify(title.value);
+  }
+});
+
+loadDraft();
+updatePreview();
 </script>
 
 </body>
