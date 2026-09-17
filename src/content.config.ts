@@ -10,6 +10,7 @@ const posts = defineCollection({
     title: z.string(),
     description: z.string().optional(),
     pubDate: z.coerce.date(),
+    category: z.string().default("未分类"),
     tags: z.array(z.string()).default([]),
   }),
 });

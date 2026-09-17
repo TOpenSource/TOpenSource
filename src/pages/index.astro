@@ -5,7 +5,7 @@ const posts = await getCollection('posts');
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-language="zh-cn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -195,11 +195,20 @@ const posts = await getCollection('posts');
 
       <div class="search">
         <input id="search" type="search" placeholder="SEARCH ARCHIVE..." />
+        <select id="categoryFilter">
+          <option value="">ALL CATEGORIES / 全部分类</option>
+          {Array.from(
+            new Set(posts.map((post) => post.data.category || '未分类'))
+          )
+            .sort((a, b) => a.localeCompare(b, 'zh-CN'))
+            .map((category) => (
+              <option value={category}>{category}</option>
+            ))}
+        </select>
         <button id="scan">SCAN</button>
       </div>
     </header>
-
-    <div class="count" id="count">
+<div class="count" id="count">
       ARCHIVE RECORDS: {posts.length}
     </div>
 
@@ -225,6 +234,7 @@ const posts = await getCollection('posts');
             data-search={`${post.data.title} ${post.data.description ?? ''} ${post.data.tags.join(' ')}`}
             data-date={post.data.pubDate.toISOString()}
             data-title={post.data.title}
+            data-category={post.data.category || '未分类'}
           >
             <div class="date">
               {post.data.pubDate.toLocaleDateString('zh-CN')}
@@ -254,6 +264,7 @@ const posts = await getCollection('posts');
     const posts = [...document.querySelectorAll('.post')];
     const count = document.querySelector('#count');
     const sortSelect = document.querySelector('#postSort');
+    const categoryFilter = document.querySelector('#categoryFilter');
 
     function sortPosts() {
       const mode = sortSelect.value;
@@ -305,18 +316,30 @@ const posts = await getCollection('posts');
 
     function search() {
       const keyword = input.value.toLowerCase().trim();
+      const category = categoryFilter.value;
+
       let visible = 0;
 
       posts.forEach((post) => {
         const text = post.dataset.search.toLowerCase();
-        const match = !keyword || text.includes(keyword);
 
-        post.style.display = match ? 'block' : 'none';
+        const matchKeyword =
+          !keyword || text.includes(keyword);
+
+        const matchCategory =
+          !category || post.dataset.category === category;
+
+        const match =
+          matchKeyword && matchCategory;
+
+        post.style.display =
+          match ? 'block' : 'none';
 
         if (match) visible++;
       });
 
-      count.textContent = `ARCHIVE RECORDS: ${visible}`;
+      count.textContent =
+        `ARCHIVE RECORDS: ${visible}`;
     }
 
     sortSelect.addEventListener('change', () => {
@@ -325,6 +348,7 @@ const posts = await getCollection('posts');
     });
 
     input.addEventListener('input', search);
+    categoryFilter.addEventListener('change', search);
     document.querySelector('#scan').addEventListener('click', search);
 
     // 默认：最新文章在最上面

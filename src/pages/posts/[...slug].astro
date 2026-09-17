@@ -123,6 +123,7 @@ const { Content } = await render(post);
 
       <div class="date">
         {post.data.pubDate.toLocaleDateString('zh-CN')}
+          <span style="margin-left:10px;">{post.data.category || '未分类'}</span>
       </div>
 
       <h1>{post.data.title}</h1>

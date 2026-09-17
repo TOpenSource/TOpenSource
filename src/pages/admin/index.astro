@@ -658,7 +658,16 @@ const articleList = posts.map((post) => ({
           </label>
 
 
-          <label>
+                    <label>
+            分类
+            <input
+              id="category"
+              placeholder="例如：技术 / 教程 / 随笔"
+              autocomplete="off"
+            />
+          </label>
+
+<label>
             标签
 
             <input
@@ -723,6 +732,9 @@ const title =
 
 const description =
   document.getElementById('description');
+
+const category =
+  document.getElementById('category');
 
 const tags =
   document.getElementById('tags');
@@ -810,6 +822,8 @@ function collect() {
     description:
       description.value.trim(),
 
+    category:
+      category.value.trim() || '未分类',
     tags:
       tags.value.trim(),
 
@@ -904,6 +918,8 @@ function newArticle() {
 
   description.value = '';
 
+  category.value = '';
+
   tags.value = '';
 
   content.value = '';
@@ -951,6 +967,9 @@ function loadArticle(slug) {
   description.value =
     article.description || '';
 
+
+  category.value =
+    article.category || '未分类';
 
   tags.value =
     (article.tags || []).join(', ');
@@ -1156,6 +1175,9 @@ function makeMarkdown() {
 
 
   output +=
+    `category: "${data.category.replaceAll('"', '\\"')}"\n`;
+
+  output +=
     'tags:\n';
 
 
@@ -1322,6 +1344,7 @@ NEXUS_FILENAME=${name}
 NEXUS_TITLE=${data.title.replace(/\n/g, ' ')}
 NEXUS_DESCRIPTION=${data.description.replace(/\n/g, ' ')}
 NEXUS_TAGS=${data.tags.replace(/\n/g, ' ')}
+NEXUS_CATEGORY=${data.category.replace(/\n/g, ' ')}
 <!-- NEXUS_PUBLISH_END -->
 
 <!-- NEXUS_CONTENT_START -->
@@ -1429,6 +1452,7 @@ NEXUS_FILENAME=${newName}
 NEXUS_TITLE=${data.title.replace(/\n/g, ' ')}
 NEXUS_DESCRIPTION=${data.description.replace(/\n/g, ' ')}
 NEXUS_TAGS=${data.tags.replace(/\n/g, ' ')}
+NEXUS_CATEGORY=${data.category.replace(/\n/g, ' ')}
 <!-- NEXUS_EDIT_END -->
 
 <!-- NEXUS_CONTENT_START -->
