@@ -19,7 +19,7 @@ const { Content } = await render(post);
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={post.data.lang === "zh-cn" ? "zh-CN" : post.data.lang}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
