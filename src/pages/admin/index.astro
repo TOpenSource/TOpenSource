@@ -255,6 +255,16 @@ const articleList = posts.map((post) => ({
       min-width: 0;
     }
 
+    .search-field {
+      min-width: 150px;
+      padding: 10px 12px;
+      background: rgba(5, 15, 18, 0.9);
+      border: 1px solid rgba(92, 255, 214, 0.25);
+      color: #8ffff0;
+      outline: none;
+      font-family: inherit;
+    }
+
     .search-button {
       white-space: nowrap;
       padding: 10px 16px;
@@ -481,10 +491,19 @@ const articleList = posts.map((post) => ({
 
   <div class="article-search">
 
+    <select id="searchField" class="search-field">
+      <option value="all">ALL 全部</option>
+      <option value="title">TITLE 标题</option>
+      <option value="slug">FILENAME 文件名</option>
+      <option value="description">DESCRIPTION 描述</option>
+      <option value="tags">TAGS 标签</option>
+      <option value="content">CONTENT 正文</option>
+    </select>
+
     <input
       type="search"
       id="articleSearch"
-      placeholder="输入标题、文件名、描述、标签……"
+      placeholder="输入关键词……"
       autocomplete="off"
     />
 
@@ -1594,190 +1613,135 @@ const searchStatus =
   document.getElementById('searchStatus');
 
 
-function renderArticleList(keyword = '') {
+function renderArticleList(
+  keyword = '',
+  field = 'all'
+) {
 
-  const query =
-    keyword.trim().toLowerCase();
+  const q = keyword
+    .trim()
+    .toLowerCase();
 
-  const results =
-    ARTICLES.filter(article => {
+  const results = ARTICLES.filter(article => {
 
-      if (!query) {
-        return true;
-      }
+    if (!q) return true;
 
-      const searchable = [
-        article.title,
-        article.slug,
-        article.description,
-        ...(article.tags || [])
-      ]
-        .join(' ')
-        .toLowerCase();
+    const values = {
 
-      return searchable.includes(query);
+      title:
+        article.title || '',
 
-    });
+      slug:
+        article.slug || '',
 
+      description:
+        article.description || '',
+
+      tags:
+        (article.tags || []).join(' '),
+
+      content:
+        article.content || ''
+
+    };
+
+    if (field === 'all') {
+
+      return Object.values(values)
+        .some(value =>
+          String(value)
+            .toLowerCase()
+            .includes(q)
+        );
+
+    }
+
+    return String(values[field] || '')
+      .toLowerCase()
+      .includes(q);
+
+  });
 
   articleCountElement.textContent =
-    results.length;
+    results.length + ' ARTICLES';
 
-
-  if (query) {
-
-    searchStatus.textContent =
-      `搜索「${keyword}」：找到 ${results.length} 篇文章`;
-
-  } else {
-
-    searchStatus.textContent =
-      `显示全部 ${results.length} 篇文章`;
-
-  }
-
+  articleListElement.innerHTML = '';
 
   if (!results.length) {
 
-    articleListElement.innerHTML = `
-      <div class="empty">
-        NO MATCHING ARTICLES
-        <br><br>
-        没有找到匹配的文章
-      </div>
-    `;
+    articleListElement.innerHTML =
+      '<div class="empty-articles">NO ARTICLES FOUND</div>';
 
     return;
 
   }
 
+  results.forEach(article => {
 
-  articleListElement.innerHTML =
-    results.map(article => `
+    const item =
+      document.createElement('div');
 
-      <div
-        class="article-card"
-        data-slug="${escapeHtml(article.slug)}"
-      >
+    item.className = 'article-item';
 
-        <div class="article-main">
-
-          <div class="article-info">
-
-            <div class="article-title">
-              ${escapeHtml(article.title)}
-            </div>
-
-            <div class="article-slug">
-              ${escapeHtml(article.slug)}.md
-            </div>
-
-            ${
-              article.description
-                ? `
-                  <div class="article-description">
-                    ${escapeHtml(
-                      article.description
-                    )}
-                  </div>
-                `
-                : ''
-            }
-
-            <div class="article-meta">
-
-              ${escapeHtml(
-                article.pubDate || ''
-              )}
-
-              ${
-                article.tags?.length
-                  ? ' · ' +
-                    article.tags
-                      .map(
-                        tag => '#' + tag
-                      )
-                      .join(' ')
-                  : ''
-              }
-
-            </div>
-
-          </div>
-
-
-          <div class="article-actions">
-
-            <button
-              type="button"
-              class="edit-button"
-              data-action="edit"
-              data-slug="${escapeHtml(
-                article.slug
-              )}"
-            >
-              ✎ EDIT
-            </button>
-
-            <button
-              type="button"
-              class="danger"
-              data-action="delete"
-              data-slug="${escapeHtml(
-                article.slug
-              )}"
-              data-title="${escapeHtml(
-                article.title
-              )}"
-            >
-              🗑 DELETE
-            </button>
-
-          </div>
-
+    item.innerHTML = `
+      <div class="article-main">
+        <div class="article-title">
+          ${escapeHtml(article.title || 'Untitled')}
         </div>
 
+        <div class="article-meta">
+          ${escapeHtml(article.slug || '')}
+          ${article.pubDate ? ' · ' + escapeHtml(article.pubDate) : ''}
+        </div>
       </div>
 
-    `).join('');
+      <div class="article-actions">
 
+        <button
+          type="button"
+          class="edit-article"
+          data-slug="${escapeHtml(article.slug || '')}"
+        >
+          ✎ EDIT
+        </button>
 
-  articleListElement
-    .querySelectorAll(
-      '[data-action="edit"]'
-    )
+        <button
+          type="button"
+          class="delete-article"
+          data-slug="${escapeHtml(article.slug || '')}"
+          data-title="${escapeHtml(article.title || '')}"
+        >
+          🗑 DELETE
+        </button>
+
+      </div>
+    `;
+
+    articleListElement.appendChild(item);
+
+  });
+
+  document
+    .querySelectorAll('.edit-article')
     .forEach(button => {
 
       button.addEventListener(
         'click',
-        () => {
-
-          loadArticle(
-            button.dataset.slug
-          );
-
-        }
+        () => loadArticle(button.dataset.slug)
       );
 
     });
 
-
-  articleListElement
-    .querySelectorAll(
-      '[data-action="delete"]'
-    )
+  document
+    .querySelectorAll('.delete-article')
     .forEach(button => {
 
       button.addEventListener(
         'click',
-        () => {
-
-          deleteArticle(
-            button.dataset.slug,
-            button.dataset.title
-          );
-
-        }
+        () => deleteArticle(
+          button.dataset.slug,
+          button.dataset.title
+        )
       );
 
     });
@@ -1790,6 +1754,25 @@ const searchArticleBtn =
     'searchArticleBtn'
   );
 
+const searchField =
+  document.getElementById(
+    'searchField'
+  );
+
+
+/*
+ * SEARCH
+ */
+
+function performArticleSearch() {
+
+  renderArticleList(
+    articleSearch.value,
+    searchField.value
+  );
+
+}
+
 
 /*
  * SEARCH BUTTON
@@ -1797,13 +1780,7 @@ const searchArticleBtn =
 
 searchArticleBtn.addEventListener(
   'click',
-  () => {
-
-    renderArticleList(
-      articleSearch.value
-    );
-
-  }
+  performArticleSearch
 );
 
 
@@ -1819,9 +1796,7 @@ articleSearch.addEventListener(
 
       event.preventDefault();
 
-      renderArticleList(
-        articleSearch.value
-      );
+      performArticleSearch();
 
     }
 
