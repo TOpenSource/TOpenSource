@@ -1,0 +1,246 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUS // ARCHIVE</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(0,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,255,.035) 1px, transparent 1px),
+        #05070a;
+      background-size: 32px 32px;
+      color: #d8ffff;
+      font-family: monospace;
+    }
+
+    .wrap {
+      width: min(1000px, 92%);
+      margin: auto;
+      padding: 50px 0;
+    }
+
+    header {
+      border: 1px solid #164d55;
+      padding: 28px;
+      background: rgba(0,20,25,.72);
+      box-shadow: 0 0 30px rgba(0,255,255,.06);
+    }
+
+    .system {
+      color: #00ffff;
+      font-size: 12px;
+      letter-spacing: 3px;
+    }
+
+    h1 {
+      margin: 12px 0 4px;
+      color: #00ffff;
+      font-size: clamp(32px, 8vw, 64px);
+      letter-spacing: 5px;
+      text-shadow: 0 0 18px rgba(0,255,255,.4);
+    }
+
+    .subtitle {
+      color: #71969b;
+      letter-spacing: 3px;
+    }
+
+    .search {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid #17606a;
+      background: #020507;
+      color: #d8ffff;
+      outline: none;
+      font: inherit;
+    }
+
+    button {
+      padding: 0 20px;
+      border: 1px solid #00ffff;
+      background: #003337;
+      color: #00ffff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .count {
+      margin: 35px 0 15px;
+      color: #54777c;
+      font-size: 13px;
+    }
+
+    .post {
+      display: block;
+      padding: 24px;
+      margin: 14px 0;
+      border: 1px solid #143d44;
+      background: rgba(0,15,20,.65);
+      text-decoration: none;
+      color: inherit;
+      transition: .2s;
+    }
+
+    .post:hover {
+      border-color: #00ffff;
+      box-shadow: 0 0 20px rgba(0,255,255,.08);
+      transform: translateY(-2px);
+    }
+
+    .date {
+      color: #00aeb8;
+      font-size: 12px;
+    }
+
+    h2 {
+      color: #00ffff;
+      margin: 10px 0;
+    }
+
+    .desc {
+      color: #8aaeb2;
+      line-height: 1.7;
+    }
+
+    .tags {
+      margin-top: 15px;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-right: 8px;
+      padding: 4px 8px;
+      border: 1px solid #20565d;
+      color: #6edce3;
+      font-size: 11px;
+    }
+
+    .empty {
+      padding: 30px;
+      border: 1px dashed #27565d;
+      color: #66898d;
+    }
+
+    @media (max-width: 600px) {
+      .wrap {
+        padding: 25px 0;
+      }
+
+      header {
+        padding: 20px;
+      }
+
+      .search {
+        flex-direction: column;
+      }
+
+      button {
+        min-height: 45px;
+      }
+
+      .post {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <header>
+      <div class="system">SYSTEM STATUS // ONLINE</div>
+      <h1>NEXUS</h1>
+      <div class="subtitle">PERSONAL KNOWLEDGE ARCHIVE</div>
+
+      <div class="search">
+        <input id="search" type="search" placeholder="SEARCH ARCHIVE..." />
+        <button id="scan">SCAN</button>
+      </div>
+    </header>
+
+    <div class="count" id="count">
+      ARCHIVE RECORDS: {posts.length}
+    </div>
+
+
+    <section id="posts">
+      {posts.length === 0 ? (
+        <div class="empty">NO ARCHIVE RECORDS FOUND.</div>
+      ) : (
+        posts.map((post) => (
+          <a
+            class="post"
+            href={`/posts/${post.id}/`}
+            data-search={`${post.data.title} ${post.data.description ?? ''} ${post.data.tags.join(' ')}`}
+          >
+            <div class="date">
+              {post.data.pubDate.toLocaleDateString('zh-CN')}
+            </div>
+
+            <h2>{post.data.title}</h2>
+
+            {post.data.description && (
+              <div class="desc">{post.data.description}</div>
+            )}
+
+            <div class="tags">
+              {post.data.tags.map((tag) => (
+                <span class="tag">#{tag}</span>
+              ))}
+            </div>
+          </a>
+        ))
+      )}
+    </section>
+
+  </main>
+
+  <script>
+    const input = document.querySelector('#search');
+    const posts = [...document.querySelectorAll('.post')];
+    const count = document.querySelector('#count');
+
+    function search() {
+      const keyword = input.value.toLowerCase().trim();
+      let visible = 0;
+
+      posts.forEach((post) => {
+        const text = post.dataset.search.toLowerCase();
+        const match = !keyword || text.includes(keyword);
+
+        post.style.display = match ? 'block' : 'none';
+
+        if (match) visible++;
+      });
+
+      count.textContent = `ARCHIVE RECORDS: ${visible}`;
+    }
+
+    input.addEventListener('input', search);
+    document.querySelector('#scan').addEventListener('click', search);
+  </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+
+  return posts.map((post) => ({
+    params: {
+      slug: post.id,
+    },
+    props: {
+      post,
+    },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>{post.data.title} // NEXUS</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #05070a;
+      color: #d7f9ff;
+      font-family: monospace;
+    }
+
+    main {
+      width: min(800px, calc(100% - 32px));
+      margin: auto;
+      padding: 50px 0;
+    }
+
+    a {
+      color: #4ffcff;
+    }
+
+    .back {
+      margin-bottom: 35px;
+    }
+
+    h1 {
+      font-size: clamp(30px, 8vw, 55px);
+    }
+
+    .date {
+      color: #4ffcff;
+      font-size: 12px;
+    }
+
+    article {
+      line-height: 1.9;
+      color: #b8d5da;
+    }
+
+    article h2,
+    article h3 {
+      color: #d7f9ff;
+    }
+
+    article code {
+      padding: 3px 6px;
+      background: #101a1f;
+      color: #4ffcff;
+    }
+
+    article pre {
+      overflow-x: auto;
+      padding: 18px;
+      background: #081015;
+      border: 1px solid #153c43;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+
+    <div class="back">
+      <a href="/">← RETURN TO ARCHIVE</a>
+    </div>
+
+    <div class="date">
+      {post.data.pubDate.toLocaleDateString('zh-CN')}
+    </div>
+
+    <h1>{post.data.title}</h1>
+
+    <article>
+      <Content />
+    </article>
+
+  </main>
+</body>
+</html>
