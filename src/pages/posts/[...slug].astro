@@ -148,6 +148,14 @@ const { Content } = await render(post);
         🗑 DELETE
       </button>
 
+      <button
+        id="manageComments"
+        class="edit-button"
+        type="button"
+      >
+        ⚙ MANAGE COMMENTS
+      </button>
+
       <div class="date">
         {post.data.pubDate.toLocaleDateString('zh-CN')}
           <span style="margin-left:10px;">{post.data.category || '未分类'}</span>
@@ -177,7 +185,39 @@ const { Content } = await render(post);
         data-lang="zh-CN"
         crossorigin="anonymous"
         async
-      ></script>
+      >
+
+    const manage =
+      document.getElementById(
+        'manageComments'
+      );
+
+    if (manage) {
+      manage.addEventListener(
+        'click',
+        () => {
+
+          const url =
+            localStorage.getItem(
+              'nexus-discussion-url'
+            );
+
+          if (url) {
+            window.open(
+              url,
+              '_blank'
+            );
+          } else {
+            alert(
+              'Open comments first to load GitHub Discussion.'
+            );
+          }
+
+        }
+      );
+    }
+
+</script>
     </section>
 
   </main>
@@ -225,6 +265,48 @@ const { Content } = await render(post);
       window.location.href = url;
     });
   </script>
+
+
+
+<script>
+window.addEventListener("message", (event) => {
+
+  if (
+    event.origin !== "https://giscus.app"
+  ) return;
+
+  const data = event.data;
+
+  if (
+    !data ||
+    data.giscus !== "metadata"
+  ) return;
+
+  const metadata = data;
+
+  if (!metadata.discussion) return;
+
+  const path = window.location.pathname;
+
+  const cache =
+    JSON.parse(
+      localStorage.getItem("nexus-comments") || "{}"
+    );
+
+  cache[path] = {
+    comments:
+      metadata.discussion.comments.totalCount,
+    updated:
+      Date.now()
+  };
+
+  localStorage.setItem(
+    "nexus-comments",
+    JSON.stringify(cache)
+  );
+
+});
+</script>
 
 </body>
 </html>
