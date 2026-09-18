@@ -204,13 +204,7 @@ const { Content, headings } = await render(post);
         🗑 DELETE
       </button>
 
-      <button
-        id="manageComments"
-        class="edit-button"
-        type="button"
-      >
-        ⚙ MANAGE COMMENTS
-      </button>
+      
 
       <div class="date">
         {post.data.pubDate.toLocaleDateString('zh-CN')}
@@ -263,35 +257,6 @@ const { Content, headings } = await render(post);
         async
       >
 
-    const manage =
-      document.getElementById(
-        'manageComments'
-      );
-
-    if (manage) {
-      manage.addEventListener(
-        'click',
-        () => {
-
-          const url =
-            localStorage.getItem(
-              'nexus-discussion-url'
-            );
-
-          if (url) {
-            window.open(
-              url,
-              '_blank'
-            );
-          } else {
-            alert(
-              'Open comments first to load GitHub Discussion.'
-            );
-          }
-
-        }
-      );
-    }
 
 </script>
     </section>
