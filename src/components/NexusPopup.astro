@@ -4,25 +4,44 @@
     📢 ANNOUNCEMENT / 公告
   </button>
 
-  <div id="announcementBox" class="box">
 
-    <div class="title">
-      📢 ANNOUNCEMENT / 公告
+  <div id="overlay">
+
+    <div class="box">
+
+      <div class="title">
+        📢 ANNOUNCEMENT / 公告
+      </div>
+
+
+      <div class="content">
+
+        🚀 NEXUS BLOG UPDATE
+        <br><br>
+
+        EN: New features have been added.
+        <br>
+        CN: 博客新增功能已上线。
+        <br><br>
+
+        • Comment system enabled
+        <br>
+        • TOC navigation added
+        <br>
+        • More features coming soon
+
+      </div>
+
+
+      <button id="closeAnnouncement">
+        CLOSE / 关闭
+      </button>
+
+
     </div>
-
-    <div class="content">
-      Welcome to NEXUS Archive.<br>
-      欢迎来到 NEXUS 知识库。
-      <br><br>
-      This is an announcement area.<br>
-      这里可以发布网站公告。
-    </div>
-
-    <button id="closeAnnouncement">
-      CLOSE / 关闭
-    </button>
 
   </div>
+
 
 </div>
 
@@ -30,15 +49,21 @@
 <style>
 
 .announcement {
+
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 9999;
+
+  right:20px;
+  bottom:20px;
+
+  z-index:9999;
+
 }
+
 
 #announcementBtn {
 
   background:#05070a;
+
   color:#00ffff;
 
   border:1px solid #00ffff;
@@ -47,22 +72,38 @@
 
   cursor:pointer;
 
-  font-size:14px;
+}
 
-  letter-spacing:1px;
+
+#overlay {
+
+  display:none;
+
+  position:fixed;
+
+  inset:0;
+
+  background:
+  rgba(0,0,0,.75);
+
+  z-index:10000;
+
+  align-items:center;
+
+  justify-content:center;
 
 }
 
 
 .box {
 
-  display:none;
+  width:min(90vw,420px);
 
-  width:320px;
+  max-height:80vh;
 
-  margin-bottom:12px;
+  overflow:auto;
 
-  padding:20px;
+  padding:25px;
 
   background:#05070a;
 
@@ -71,7 +112,7 @@
   color:#d8ffff;
 
   box-shadow:
-  0 0 20px rgba(0,255,255,.25);
+  0 0 30px rgba(0,255,255,.3);
 
 }
 
@@ -80,31 +121,31 @@
 
   color:#00ffff;
 
-  margin-bottom:15px;
+  font-size:18px;
 
-  font-size:16px;
+  margin-bottom:20px;
 
 }
 
 
 .content {
 
-  line-height:1.7;
+  line-height:1.8;
 
 }
 
 
 #closeAnnouncement {
 
-  margin-top:15px;
+  margin-top:20px;
 
-  background:transparent;
+  padding:8px 16px;
+
+  background:none;
 
   color:#00ffff;
 
   border:1px solid #00ffff;
-
-  padding:6px 12px;
 
   cursor:pointer;
 
@@ -118,17 +159,19 @@
 
 const btn =
 document.getElementById(
-  "announcementBtn"
+"announcementBtn"
 );
 
-const box =
+
+const overlay =
 document.getElementById(
-  "announcementBox"
+"overlay"
 );
+
 
 const close =
 document.getElementById(
-  "closeAnnouncement"
+"closeAnnouncement"
 );
 
 
@@ -136,10 +179,7 @@ btn?.addEventListener(
 "click",
 ()=>{
 
- box.style.display =
- box.style.display === "block"
- ? "none"
- : "block";
+ overlay.style.display="flex";
 
 });
 
@@ -148,7 +188,20 @@ close?.addEventListener(
 "click",
 ()=>{
 
- box.style.display="none";
+ overlay.style.display="none";
+
+});
+
+
+overlay?.addEventListener(
+"click",
+(e)=>{
+
+ if(e.target===overlay){
+
+  overlay.style.display="none";
+
+ }
 
 });
 
@@ -158,7 +211,9 @@ document.addEventListener(
 (e)=>{
 
  if(e.key==="Escape"){
-   box.style.display="none";
+
+  overlay.style.display="none";
+
  }
 
 });
